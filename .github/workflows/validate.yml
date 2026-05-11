@@ -40,6 +40,14 @@ jobs:
             --format markdown
           grep -q "would_recommend がペルソナ間で割れた" /tmp/smoke-split.md
 
+      - name: Aggregate sample run (smoke - category-only all-agreement)
+        run: |
+          node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
+            --feedbacks examples/runs/sample-run-location-varied/raw \
+            --output /tmp/smoke-loc.md \
+            --format markdown
+          grep -q "location 表現がペルソナ間で揺れている" /tmp/smoke-loc.md
+
       - name: Validate plugin manifests (JSON syntax)
         run: |
           node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/marketplace.json','utf8'))"

@@ -1,0 +1,3 @@
+{"persona_id":"gal-20s","target":"http://localhost:3000/signup","task":"t","outcome":"abandoned",
+"findings":[{"category":"trust","severity":"high","location":"email input","description":"勝手に入力が変わる"}],
+"score":{"overall":3,"would_recommend":false}}

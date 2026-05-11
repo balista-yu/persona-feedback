@@ -105,20 +105,36 @@ function loadFeedback(file) {
 const SEVERITY_RANK = { low: 1, medium: 2, high: 3, critical: 4 };
 
 /**
+ * location を粗く正規化する。日本語/英語混在、表記揺れに弱いので
+ * 完全一致を諦め、目立つ語だけ拾える形にする。
+ */
+function normalizeLocation(loc) {
+  if (!loc) return '';
+  return String(loc)
+    .toLowerCase()
+    .replace(/[\s　]+/g, '')
+    .replace(/["'`「」『』]/g, '')
+    .replace(/[、。,;.!?！？:：]/g, '');
+}
+
+/**
  * 不一致分析:
- * - all-agreement: 全ペルソナが同じ category を critical/high で指摘
- * - segment-specific: 1〜(N-1)体だけが指摘
- * - controversial: スコアの分散が大きい / outcome が割れた
+ * - all-agreement: 全ペルソナが同じ問題を指摘
+ *   - primary: category + 正規化 location が一致
+ *   - secondary: location が表現揺れで一致しない場合でも、
+ *     category 単独で全員が severity >= high の finding を持っていれば拾う
+ * - segment-specific: 1〜(N-1)体だけが指摘（medium 以上）
+ * - controversial: スコアの分散が大きい / 推薦意向が割れた
  */
 function analyze(feedbacks) {
   const personaIds = feedbacks.map(f => f.persona_id);
   const N = personaIds.length;
 
-  // category × location でまとめる（location 無しは category のみ）
+  // primary: category × 正規化 location でまとめる
   const groups = new Map();
   for (const fb of feedbacks) {
     for (const find of fb.findings) {
-      const key = `${find.category}::${find.location || ''}`;
+      const key = `${find.category}::${normalizeLocation(find.location)}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push({ persona_id: fb.persona_id, ...find });
     }
@@ -126,16 +142,55 @@ function analyze(feedbacks) {
 
   const allAgreement = [];
   const segmentSpecific = [];
+  const claimedFindings = new Set(); // primary で all-agreement 入りした finding を覚える
+
   for (const [key, items] of groups.entries()) {
     const personas = new Set(items.map(i => i.persona_id));
     const maxSev = items.reduce((m, i) => Math.max(m, SEVERITY_RANK[i.severity] || 0), 0);
     if (personas.size >= N && N >= 2) {
-      allAgreement.push({ key, items, max_severity_rank: maxSev });
+      allAgreement.push({ key, items, max_severity_rank: maxSev, source: 'location-match' });
+      for (const it of items) claimedFindings.add(it);
     } else if (personas.size >= 1 && personas.size < N) {
-      // medium 以上のみ segment-specific として拾う（ノイズ抑制）
       if (maxSev >= 2) segmentSpecific.push({ key, items, max_severity_rank: maxSev });
     }
   }
+
+  // secondary: location 表現揺れ救済。
+  // category 単独で「全ペルソナが severity >= high の finding を持っている」場合は
+  // 別グループとして all-agreement に加える（location は混合表示）。
+  if (N >= 2) {
+    const byCategory = new Map();
+    for (const fb of feedbacks) {
+      for (const find of fb.findings) {
+        if ((SEVERITY_RANK[find.severity] || 0) < 3) continue; // high 以上のみ
+        if (!byCategory.has(find.category)) byCategory.set(find.category, []);
+        byCategory.get(find.category).push({ persona_id: fb.persona_id, ...find });
+      }
+    }
+    for (const [category, items] of byCategory.entries()) {
+      const personas = new Set(items.map(i => i.persona_id));
+      if (personas.size < N) continue;
+      // primary で同じ items を既に all-agreement 入りさせていたらスキップ
+      const allClaimed = items.every(it => claimedFindings.has(it));
+      if (allClaimed) continue;
+      const maxSev = items.reduce((m, i) => Math.max(m, SEVERITY_RANK[i.severity] || 0), 0);
+      allAgreement.push({
+        key: `${category}::*location-varied*`,
+        items,
+        max_severity_rank: maxSev,
+        source: 'category-only',
+      });
+      // location 表現揺れで segment-specific に重複登録されているグループを整理
+      for (let i = segmentSpecific.length - 1; i >= 0; i--) {
+        const seg = segmentSpecific[i];
+        const [segCat] = seg.key.split('::');
+        if (segCat === category && seg.items.every(it => items.includes(it))) {
+          segmentSpecific.splice(i, 1);
+        }
+      }
+    }
+  }
+
   allAgreement.sort((a, b) => b.max_severity_rank - a.max_severity_rank);
   segmentSpecific.sort((a, b) => b.max_severity_rank - a.max_severity_rank);
 
@@ -204,7 +259,10 @@ function toMarkdown(feedbacks, analysis) {
   } else {
     for (const g of allAgreement) {
       const [cat] = g.key.split('::');
-      out.push(`### ${cat}`);
+      const suffix = g.source === 'category-only'
+        ? ' _(高重要度のカテゴリ一致。location 表現がペルソナ間で揺れている)_'
+        : '';
+      out.push(`### ${cat}${suffix}`);
       for (const item of g.items) out.push(formatFindingMd(item));
       out.push('');
     }

@@ -1,0 +1,3 @@
+{"persona_id":"tanaka-60s","target":"http://localhost:3000/signup","task":"t","outcome":"abandoned",
+"findings":[{"category":"trust","severity":"critical","location":"メアド入力欄","description":"他人のメアドに書き換わる"}],
+"score":{"overall":2,"would_recommend":false}}
