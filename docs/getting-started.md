@@ -5,7 +5,7 @@
 Claude Code 内で以下を実行:
 
 ```
-/plugin marketplace add github:balista-yu/persona-feedback
+/plugin marketplace add balista-yu/persona-feedback
 /plugin install persona-feedback@persona-feedback
 ```
 
