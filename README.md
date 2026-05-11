@@ -25,14 +25,17 @@ Claude Code 内で:
 
 ## 使い方
 
+スキルは **自然言語で頼むと Claude が自動で起動** する（SKILL.md の `description` がトリガー）。
+明示的に呼びたいときはスキル名をプロンプトに含める。
+
 ### ペルソナを作る（任意）
 
 組み込み 3 体（`tanaka-60s`, `gal-20s`, `dev-engineer`）で足りればスキップ。
-自前で作る場合:
+自前で作る場合は `persona-builder` を起動させる:
 
 ```
-/skill persona-feedback:persona-builder
-「ECサイト向けに、節約志向の主婦と、ガジェット好きの大学生の2人を作って」
+persona-builder を使って、ECサイト向けに、節約志向の主婦と、
+ガジェット好きの大学生の2人ペルソナを作って
 ```
 
 `personas/` 配下に YAML が生成される。
@@ -40,9 +43,9 @@ Claude Code 内で:
 ### ペルソナにテストさせる
 
 ```
-/skill persona-feedback:persona-tester
-「http://localhost:3000 を tanaka-60s, gal-20s, dev-engineer の3人で、
- 新規登録タスクをテスト。accessibility と usability 観点で」
+persona-tester で http://localhost:3000 を
+tanaka-60s, gal-20s, dev-engineer の3人で、
+新規登録タスクをテスト。accessibility と usability 観点で
 ```
 
 3 つのサブエージェントが並列で立ち上がり、各ペルソナがブラウザを操作する。
