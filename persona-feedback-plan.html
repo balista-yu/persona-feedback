@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>persona-feedback — 計画書 v0.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4ede4;
+    --paper-2: #ebe2d4;
+    --ink: #1a1614;
+    --ink-soft: #3d2f24;
+    --rule: #1a1614;
+    --hot: #d94427;
+    --hot-soft: #f2c4b7;
+    --info: #1e3a5f;
+    --info-soft: #c8d4e0;
+    --muted: #6b5d4f;
+    --good: #2d6a4f;
+    --code-bg: #1a1614;
+    --code-fg: #f4ede4;
+    --code-accent: #f0a500;
+    --display: "Fraunces", Georgia, serif;
+    --body: "Geist", system-ui, sans-serif;
+    --mono: "JetBrains Mono", "Menlo", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(217, 68, 39, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(30, 58, 95, 0.04) 0%, transparent 40%);
+  }
+
+  /* layout */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 0;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* sidebar / toc */
+  .toc {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 24px;
+    border-right: 1px solid var(--rule);
+    background: var(--paper-2);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .toc h3 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 13px;
+    margin: 0 0 16px;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 8px;
+  }
+  .toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: toc;
+  }
+  .toc li {
+    counter-increment: toc;
+    margin-bottom: 4px;
+  }
+  .toc a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    display: block;
+    padding: 4px 0;
+    border-left: 2px solid transparent;
+    padding-left: 8px;
+    transition: all 0.15s;
+  }
+  .toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    color: var(--hot);
+    margin-right: 8px;
+    font-weight: 700;
+  }
+  .toc a:hover {
+    border-left-color: var(--hot);
+    color: var(--ink);
+  }
+
+  /* main */
+  main {
+    padding: 64px 80px;
+    max-width: 880px;
+  }
+
+  /* hero */
+  .hero {
+    border-bottom: 4px double var(--ink);
+    padding-bottom: 40px;
+    margin-bottom: 56px;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 4px 10px;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(48px, 7vw, 88px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    margin: 0 0 16px;
+    font-variation-settings: "opsz" 144;
+  }
+  .hero h1 .em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--hot);
+  }
+  .hero p.tagline {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+    max-width: 600px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .meta-grid > div {
+    padding: 12px 16px 12px 0;
+    border-right: 1px solid var(--ink-soft);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .meta-grid > div:last-child { border-right: none; }
+  .meta-grid .k {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .meta-grid .v {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* sections */
+  section {
+    margin-bottom: 72px;
+    scroll-margin-top: 24px;
+  }
+  section > h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 42px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: 0 0 24px;
+    position: relative;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--ink);
+  }
+  section > h2::before {
+    content: attr(data-num);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--hot);
+    display: block;
+    margin-bottom: 8px;
+    letter-spacing: 0.1em;
+  }
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 1.2;
+    margin: 40px 0 12px;
+    letter-spacing: -0.01em;
+  }
+  h4 {
+    font-family: var(--body);
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 28px 0 10px;
+    color: var(--ink-soft);
+  }
+  p { margin: 0 0 14px; max-width: 68ch; }
+  p.lead {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  ul, ol { padding-left: 22px; max-width: 68ch; }
+  li { margin-bottom: 6px; }
+  strong { font-weight: 600; color: var(--ink); }
+  em { font-style: italic; }
+  a { color: var(--hot); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+  /* code */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.55;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    border-left: 4px solid var(--code-accent);
+    position: relative;
+  }
+  pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 6px;
+    right: 12px;
+    font-size: 10px;
+    color: var(--code-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--paper-2);
+    padding: 1px 6px;
+    color: var(--ink);
+    border: 1px solid var(--ink-soft);
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+  .tok-k { color: #ff9d6b; }    /* keyword */
+  .tok-s { color: #ffd700; }    /* string */
+  .tok-c { color: #6b9080; font-style: italic; }  /* comment */
+  .tok-p { color: #d9b8a0; }    /* property */
+  .tok-n { color: #a8d5ff; }    /* number/value */
+
+  /* callouts */
+  .callout {
+    border: 1px solid var(--ink);
+    padding: 20px 24px;
+    margin: 24px 0;
+    background: var(--paper-2);
+    position: relative;
+  }
+  .callout.hot { border-color: var(--hot); background: var(--hot-soft); }
+  .callout.info { border-color: var(--info); background: var(--info-soft); }
+  .callout .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 2px 8px;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .callout.hot .label { background: var(--hot); }
+  .callout.info .label { background: var(--info); color: var(--paper); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* tree */
+  .tree {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: var(--paper-2);
+    border: 1px solid var(--ink-soft);
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    white-space: pre;
+    color: var(--ink);
+  }
+  .tree .dim { color: var(--muted); }
+  .tree .file { color: var(--info); }
+  .tree .imp { color: var(--hot); font-weight: 700; }
+
+  /* phase cards */
+  .phases { display: grid; gap: 16px; margin: 24px 0; }
+  .phase {
+    border: 1px solid var(--ink);
+    padding: 20px 24px;
+    background: var(--paper-2);
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 24px;
+  }
+  .phase-num {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 0.9;
+    color: var(--hot);
+    font-style: italic;
+  }
+  .phase-num small {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-style: normal;
+    font-weight: 400;
+    margin-top: 4px;
+  }
+  .phase-body h4 {
+    margin-top: 0;
+    font-size: 18px;
+    font-family: var(--display);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .phase-body .duration {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--hot);
+    margin-bottom: 8px;
+  }
+  .phase-body ul { margin: 8px 0; padding-left: 18px; }
+  .phase-body .accept {
+    border-top: 1px dashed var(--ink-soft);
+    padding-top: 10px;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  .phase-body .accept strong {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--good);
+  }
+
+  /* table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--ink-soft);
+    vertical-align: top;
+  }
+  th {
+    border-bottom: 2px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--paper-2);
+  }
+  td code { font-size: 12px; }
+
+  /* diagram */
+  .diagram {
+    margin: 24px 0;
+    padding: 24px;
+    background: var(--paper-2);
+    border: 1px solid var(--ink);
+    overflow-x: auto;
+  }
+
+  /* footer */
+  footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 4px double var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* responsive */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--rule);
+    }
+    main { padding: 32px 24px; }
+    .meta-grid { grid-template-columns: repeat(2, 1fr); }
+    .meta-grid > div:nth-child(2) { border-right: none; }
+    .phase { grid-template-columns: 1fr; gap: 8px; }
+    .phase-num { font-size: 36px; }
+  }
+
+  /* print */
+  @media print {
+    .toc { display: none; }
+    .shell { grid-template-columns: 1fr; }
+    main { padding: 20px; max-width: none; }
+    pre { font-size: 10px; }
+    body { background: white; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="toc" aria-label="目次">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#goals">Goals &amp; Non-Goals</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#repo">Repository Layout</a></li>
+    <li><a href="#manifests">Manifests</a></li>
+    <li><a href="#mcp">MCP Configuration</a></li>
+    <li><a href="#skill-builder">Skill: persona-builder</a></li>
+    <li><a href="#skill-tester">Skill: persona-tester</a></li>
+    <li><a href="#schemas">Schemas</a></li>
+    <li><a href="#personas">Built-in Personas</a></li>
+    <li><a href="#subagent">Sub-agent</a></li>
+    <li><a href="#phases">Development Phases</a></li>
+    <li><a href="#cicd">CI / CD</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#release">Release Strategy</a></li>
+    <li><a href="#decisions">Open Decisions</a></li>
+    <li><a href="#refs">References</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="hero">
+  <span class="hero-tag">PLAN · v0.1 · DRAFT</span>
+  <h1>persona-<span class="em">feedback</span></h1>
+  <p class="tagline">合成ユーザーをサブエージェント化し、Webアプリに対するリアルなフィードバックを並列で集めるClaude Codeプラグイン。</p>
+  <div class="meta-grid">
+    <div><span class="k">Project</span><span class="v">persona-feedback</span></div>
+    <div><span class="k">Type</span><span class="v">Claude Code Plugin</span></div>
+    <div><span class="k">Distribution</span><span class="v">GitHub Marketplace</span></div>
+    <div><span class="k">License</span><span class="v">MIT</span></div>
+  </div>
+</header>
+
+<!-- ===== 1. OVERVIEW ===== -->
+<section id="overview">
+  <h2 data-num="§ 01">Overview</h2>
+  <p class="lead">本プラグインは「架空ユーザー（ペルソナ）をサブエージェントとして起動し、Playwright MCPを介して実際のWebアプリを操作させ、構造化されたフィードバックを得る」ためのClaude Codeプラグインである。開発者は実ユーザーテスト前に高速なフィードバックループを回せる。</p>
+
+  <h3>Core Loop</h3>
+  <ol>
+    <li><strong>定義</strong>：自然言語コンテキストからペルソナYAMLを生成（<code>persona-builder</code>）</li>
+    <li><strong>実行</strong>：複数ペルソナをサブエージェントとして並列起動し、Playwright経由でアプリを操作（<code>persona-tester</code>）</li>
+    <li><strong>集約</strong>：各ペルソナのフィードバックをマージし、<em>不一致点</em>をハイライトしたレポートを生成</li>
+  </ol>
+
+  <div class="callout info">
+    <span class="label">Why this matters</span>
+    <p>LLMペルソナは「賢すぎ／協調的すぎ」という構造的問題を抱える。本プラグインは <code>behavior_rules</code> による意図的な能力制限と、ペルソナ間の不一致検出によってこの問題を緩和する。詳細は §<a href="#decisions">16</a> を参照。</p>
+  </div>
+</section>
+
+<!-- ===== 2. GOALS ===== -->
+<section id="goals">
+  <h2 data-num="§ 02">Goals &amp; Non-Goals</h2>
+
+  <h3>Goals (v0.1)</h3>
+  <ul>
+    <li>Claude Codeのプラグインとしてgit経由でインストール可能</li>
+    <li>2つのスキル（builder / tester）が独立して機能する</li>
+    <li>Playwright MCPを介したWebアプリ操作とスクリーンショット取得</li>
+    <li>3体の組み込みペルソナと、自由なペルソナ生成</li>
+    <li>並列実行（最低3ペルソナ同時）</li>
+    <li>Markdown / JSON両形式でのフィードバック出力</li>
+    <li>フィードバック観点（usability / bugs / accessibility 等）を実行時指定可能</li>
+  </ul>
+
+  <h3>Non-Goals (v0.1)</h3>
+  <ul>
+    <li>API / CLIアプリへの対応（v0.2以降）</li>
+    <li>ペルソナの永続メモリ（複数回テスト間の継続性。Agent SDK版で対応予定）</li>
+    <li>WebダッシュボードUI</li>
+    <li>有償ホスティングサービス化</li>
+    <li>実ユーザーテストの完全な代替（あくまで補助・前段）</li>
+  </ul>
+</section>
+
+<!-- ===== 3. ARCHITECTURE ===== -->
+<section id="architecture">
+  <h2 data-num="§ 03">Architecture</h2>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;height:auto;font-family:'JetBrains Mono',monospace;font-size:11px;">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#1a1614"/>
+        </marker>
+      </defs>
+      <!-- user -->
+      <rect x="20" y="20" width="140" height="50" fill="#1a1614" stroke="#1a1614"/>
+      <text x="90" y="42" fill="#f4ede4" text-anchor="middle" font-weight="700">USER</text>
+      <text x="90" y="58" fill="#f0a500" text-anchor="middle" font-size="9">/persona-feedback:*</text>
+
+      <!-- main agent -->
+      <rect x="220" y="20" width="240" height="80" fill="#f4ede4" stroke="#1a1614" stroke-width="2"/>
+      <text x="340" y="42" text-anchor="middle" font-weight="700" font-size="13">Main Claude Agent</text>
+      <text x="340" y="60" text-anchor="middle" fill="#6b5d4f" font-size="10">orchestrator</text>
+      <text x="340" y="80" text-anchor="middle" fill="#d94427" font-size="10">spawns sub-agents · aggregates</text>
+
+      <line x1="160" y1="45" x2="218" y2="45" stroke="#1a1614" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- skills -->
+      <rect x="520" y="0" width="220" height="50" fill="#ebe2d4" stroke="#1a1614"/>
+      <text x="630" y="20" text-anchor="middle" font-weight="700">SKILL: persona-builder</text>
+      <text x="630" y="36" text-anchor="middle" fill="#6b5d4f" font-size="10">context → persona.yaml</text>
+
+      <rect x="520" y="70" width="220" height="50" fill="#ebe2d4" stroke="#1a1614"/>
+      <text x="630" y="90" text-anchor="middle" font-weight="700">SKILL: persona-tester</text>
+      <text x="630" y="106" text-anchor="middle" fill="#6b5d4f" font-size="10">personas + target → report</text>
+
+      <line x1="460" y1="40" x2="518" y2="25" stroke="#1a1614" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="460" y1="70" x2="518" y2="95" stroke="#1a1614" stroke-width="1" marker-end="url(#arr)"/>
+
+      <!-- sub-agents -->
+      <rect x="80" y="160" width="160" height="60" fill="#f2c4b7" stroke="#d94427" stroke-width="1.5"/>
+      <text x="160" y="182" text-anchor="middle" font-weight="700">Sub-agent</text>
+      <text x="160" y="198" text-anchor="middle" font-size="10">Persona: 田中 60s</text>
+      <text x="160" y="212" text-anchor="middle" fill="#6b5d4f" font-size="9">isolated context</text>
+
+      <rect x="300" y="160" width="160" height="60" fill="#f2c4b7" stroke="#d94427" stroke-width="1.5"/>
+      <text x="380" y="182" text-anchor="middle" font-weight="700">Sub-agent</text>
+      <text x="380" y="198" text-anchor="middle" font-size="10">Persona: ギャル 20s</text>
+      <text x="380" y="212" text-anchor="middle" fill="#6b5d4f" font-size="9">isolated context</text>
+
+      <rect x="520" y="160" width="160" height="60" fill="#f2c4b7" stroke="#d94427" stroke-width="1.5"/>
+      <text x="600" y="182" text-anchor="middle" font-weight="700">Sub-agent</text>
+      <text x="600" y="198" text-anchor="middle" font-size="10">Persona: Dev Engineer</text>
+      <text x="600" y="212" text-anchor="middle" fill="#6b5d4f" font-size="9">isolated context</text>
+
+      <line x1="280" y1="100" x2="160" y2="158" stroke="#1a1614" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="340" y1="100" x2="380" y2="158" stroke="#1a1614" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="400" y1="100" x2="600" y2="158" stroke="#1a1614" stroke-width="1" marker-end="url(#arr)"/>
+
+      <!-- playwright -->
+      <rect x="220" y="270" width="320" height="50" fill="#c8d4e0" stroke="#1e3a5f" stroke-width="1.5"/>
+      <text x="380" y="292" text-anchor="middle" font-weight="700">Playwright MCP</text>
+      <text x="380" y="308" text-anchor="middle" fill="#1e3a5f" font-size="10">browser automation · screenshots · DOM</text>
+
+      <line x1="160" y1="220" x2="240" y2="268" stroke="#1e3a5f" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="380" y1="220" x2="380" y2="268" stroke="#1e3a5f" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="600" y1="220" x2="520" y2="268" stroke="#1e3a5f" stroke-width="1" marker-end="url(#arr)"/>
+
+      <!-- target -->
+      <rect x="280" y="340" width="200" height="30" fill="#1a1614" stroke="#1a1614"/>
+      <text x="380" y="360" text-anchor="middle" fill="#f4ede4" font-weight="700">TARGET WEB APP</text>
+      <line x1="380" y1="320" x2="380" y2="338" stroke="#1a1614" stroke-width="1" marker-end="url(#arr)"/>
+    </svg>
+  </div>
+
+  <h3>Key Properties</h3>
+  <ul>
+    <li><strong>分離されたコンテキスト</strong>：各サブエージェントは独自のシステムプロンプト・履歴を持ち、互いのフィードバックに汚染されない</li>
+    <li><strong>並列実行</strong>：メインエージェントはTask toolで複数サブエージェントを同時起動する</li>
+    <li><strong>共有MCP</strong>：Playwright MCPは全サブエージェントが利用できるが、ブラウザコンテキストはサブエージェント単位で分離</li>
+    <li><strong>構造化出力</strong>：各サブエージェントの最終出力はスキーマに従ったMarkdownまたはJSON</li>
+  </ul>
+</section>
+
+<!-- ===== 4. REPO ===== -->
+<section id="repo">
+  <h2 data-num="§ 04">Repository Layout</h2>
+  <p>単一リポジトリにマーケットプレース定義と1プラグインを同梱する構成。後にプラグインを分割する場合は <code>plugins/</code> 配下を増やすだけで対応可能。</p>
+
+<div class="tree">persona-feedback/                              <span class="dim"># GitHub repo root</span>
+├── <span class="imp">.claude-plugin/</span>
+│   └── <span class="file">marketplace.json</span>                  <span class="dim"># marketplace catalog</span>
+├── plugins/
+│   └── persona-feedback/                      <span class="dim"># the plugin itself</span>
+│       ├── <span class="imp">.claude-plugin/</span>
+│       │   └── <span class="file">plugin.json</span>                <span class="dim"># plugin manifest</span>
+│       ├── <span class="file">.mcp.json</span>                      <span class="dim"># Playwright MCP config</span>
+│       ├── skills/
+│       │   ├── persona-builder/
+│       │   │   ├── <span class="file">SKILL.md</span>
+│       │   │   └── templates/
+│       │   │       └── persona.template.yaml
+│       │   └── persona-tester/
+│       │       ├── <span class="file">SKILL.md</span>
+│       │       ├── schemas/
+│       │       │   ├── persona.schema.json
+│       │       │   └── feedback.schema.json
+│       │       └── scripts/
+│       │           └── aggregate.py           <span class="dim"># report merger</span>
+│       ├── agents/
+│       │   └── <span class="file">persona-runner.md</span>          <span class="dim"># sub-agent definition</span>
+│       └── personas/                          <span class="dim"># built-in persona library</span>
+│           ├── tanaka-60s.yaml
+│           ├── gal-20s.yaml
+│           └── dev-engineer.yaml
+├── examples/
+│   ├── demo-app/                              <span class="dim"># sample target app</span>
+│   └── runs/                                  <span class="dim"># example outputs</span>
+├── docs/
+│   ├── getting-started.md
+│   ├── persona-spec.md
+│   ├── feedback-spec.md
+│   └── architecture.md
+├── tests/
+│   ├── fixtures/
+│   └── smoke/
+├── .github/
+│   └── workflows/
+│       ├── <span class="file">validate.yml</span>                   <span class="dim"># JSON schema check</span>
+│       └── <span class="file">release.yml</span>                    <span class="dim"># tag → release</span>
+├── <span class="file">CHANGELOG.md</span>
+├── <span class="file">LICENSE</span>                                <span class="dim"># MIT</span>
+└── <span class="file">README.md</span></div>
+
+  <div class="callout">
+    <span class="label">Note</span>
+    <p>プラグインはユーザーの<code>~/.claude/plugins/cache/</code>にコピーされて動作する。プラグインディレクトリ外への相対パス参照（<code>../shared/</code>等）は機能しないため、必要なファイルはすべて<code>plugins/persona-feedback/</code>配下に置く。</p>
+  </div>
+</section>
+
+<!-- ===== 5. MANIFESTS ===== -->
+<section id="manifests">
+  <h2 data-num="§ 05">Manifests</h2>
+
+  <h3>marketplace.json</h3>
+  <p>リポジトリルートの <code>.claude-plugin/marketplace.json</code>。ユーザーが <code>/plugin marketplace add github:owner/persona-feedback</code> したときに読み込まれる。</p>
+
+<pre data-lang="json"><span class="tok-p">{</span>
+  <span class="tok-p">"$schema"</span>: <span class="tok-s">"https://json.schemastore.org/claude-code-marketplace.json"</span>,
+  <span class="tok-p">"name"</span>: <span class="tok-s">"persona-feedback"</span>,
+  <span class="tok-p">"version"</span>: <span class="tok-s">"0.1.0"</span>,
+  <span class="tok-p">"description"</span>: <span class="tok-s">"Synthetic users as sub-agents for fast UX feedback loops"</span>,
+  <span class="tok-p">"owner"</span>: <span class="tok-p">{</span>
+    <span class="tok-p">"name"</span>: <span class="tok-s">"&lt;YOUR_NAME&gt;"</span>,
+    <span class="tok-p">"url"</span>: <span class="tok-s">"https://github.com/&lt;YOUR_HANDLE&gt;"</span>
+  <span class="tok-p">}</span>,
+  <span class="tok-p">"homepage"</span>: <span class="tok-s">"https://github.com/&lt;YOUR_HANDLE&gt;/persona-feedback"</span>,
+  <span class="tok-p">"license"</span>: <span class="tok-s">"MIT"</span>,
+  <span class="tok-p">"plugins"</span>: <span class="tok-p">[</span>
+    <span class="tok-p">{</span>
+      <span class="tok-p">"name"</span>: <span class="tok-s">"persona-feedback"</span>,
+      <span class="tok-p">"description"</span>: <span class="tok-s">"Run synthetic personas against your web app via Playwright MCP"</span>,
+      <span class="tok-p">"source"</span>: <span class="tok-s">"./plugins/persona-feedback"</span>,
+      <span class="tok-p">"category"</span>: <span class="tok-s">"testing"</span>,
+      <span class="tok-p">"keywords"</span>: <span class="tok-p">[</span><span class="tok-s">"ux"</span>, <span class="tok-s">"testing"</span>, <span class="tok-s">"persona"</span>, <span class="tok-s">"playwright"</span>, <span class="tok-s">"feedback"</span><span class="tok-p">]</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">]</span>
+<span class="tok-p">}</span></pre>
+
+  <h3>plugin.json</h3>
+  <p><code>plugins/persona-feedback/.claude-plugin/plugin.json</code>。プラグイン本体のメタデータ。</p>
+
+<pre data-lang="json"><span class="tok-p">{</span>
+  <span class="tok-p">"$schema"</span>: <span class="tok-s">"https://json.schemastore.org/claude-code-plugin-manifest.json"</span>,
+  <span class="tok-p">"name"</span>: <span class="tok-s">"persona-feedback"</span>,
+  <span class="tok-p">"version"</span>: <span class="tok-s">"0.1.0"</span>,
+  <span class="tok-p">"description"</span>: <span class="tok-s">"Synthetic personas test your web app and return structured feedback"</span>,
+  <span class="tok-p">"author"</span>: <span class="tok-p">{</span>
+    <span class="tok-p">"name"</span>: <span class="tok-s">"&lt;YOUR_NAME&gt;"</span>
+  <span class="tok-p">}</span>,
+  <span class="tok-p">"license"</span>: <span class="tok-s">"MIT"</span>,
+  <span class="tok-p">"homepage"</span>: <span class="tok-s">"https://github.com/&lt;YOUR_HANDLE&gt;/persona-feedback"</span>
+<span class="tok-p">}</span></pre>
+
+  <div class="callout hot">
+    <span class="label">Important</span>
+    <p>スキルはプラグインインストール後、<code>persona-feedback:persona-builder</code> および <code>persona-feedback:persona-tester</code> という名前空間で呼び出される。プラグイン名と一致しているため、ユーザー視点では自然に見える。</p>
+  </div>
+</section>
+
+<!-- ===== 6. MCP ===== -->
+<section id="mcp">
+  <h2 data-num="§ 06">MCP Configuration</h2>
+  <p>プラグインルートの <code>.mcp.json</code> にPlaywright MCPを定義する。プラグインインストール時にClaude Codeが自動でMCPサーバーを起動する。</p>
+
+<pre data-lang="json"><span class="tok-p">{</span>
+  <span class="tok-p">"mcpServers"</span>: <span class="tok-p">{</span>
+    <span class="tok-p">"playwright"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"command"</span>: <span class="tok-s">"npx"</span>,
+      <span class="tok-p">"args"</span>: <span class="tok-p">[</span><span class="tok-s">"@playwright/mcp@latest"</span><span class="tok-p">]</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></pre>
+
+  <p>Playwright MCPは以下のツール群を提供する（実装AIは公式ドキュメントで最新のツール名を確認すること）：</p>
+  <ul>
+    <li><code>browser_navigate</code> — URLへ遷移</li>
+    <li><code>browser_snapshot</code> — DOMのアクセシビリティスナップショット取得</li>
+    <li><code>browser_click</code> / <code>browser_type</code> / <code>browser_select</code> — 操作</li>
+    <li><code>browser_take_screenshot</code> — スクリーンショット保存</li>
+    <li><code>browser_wait_for</code> — 待機</li>
+  </ul>
+
+  <div class="callout info">
+    <span class="label">Decision required</span>
+    <p>Playwright MCPはNode.js環境を要する。READMEには「Node.js 18+ が必要」と明記すること。インストール手順に <code>npx</code> の初回実行コスト（数十秒）を注記する。</p>
+  </div>
+</section>
+
+<!-- ===== 7. PERSONA BUILDER ===== -->
+<section id="skill-builder">
+  <h2 data-num="§ 07">Skill: persona-builder</h2>
+  <p class="lead">自然言語コンテキストを受け取り、構造化されたペルソナYAMLを生成するスキル。生成されたファイルは<code>persona-tester</code>でそのまま消費可能。</p>
+
+  <h3>SKILL.md（実装AI向けの仕様）</h3>
+
+<pre data-lang="markdown">---
+name: persona-builder
+description: Use when the user wants to define, generate, or refine a synthetic
+  user persona for testing. Triggers include "create a persona", "ペルソナ作って",
+  "test user profile", or when the user describes a target user demographic.
+  Outputs a YAML file conforming to the persona schema.
+---
+
+# persona-builder
+
+ユーザーが提供するコンテキスト（業種・サービス・ターゲットユーザー像など）から、
+テスト用ペルソナのYAMLファイルを生成する。
+
+## 入力
+
+ユーザーから以下のいずれか:
+- 自由記述のコンテキスト（"ECサイト向けに3人のペルソナを"）
+- 既存ペルソナYAMLへの修正指示
+- ターゲットアプリのURL（任意 — Playwrightで実物を見て調整）
+
+## 出力
+
+`personas/&lt;persona-id&gt;.yaml` を作成する。スキーマは
+`skills/persona-tester/schemas/persona.schema.json` に準拠すること。
+
+## 生成手順
+
+1. ユーザーのコンテキストを読み取り、必要なペルソナ数を確認
+2. 各ペルソナについて以下を確定:
+   - **demographics**: 年齢、職業、技術リテラシー
+   - **context**: 利用デバイス、環境、目的
+   - **personality**: 3〜5個の性格特性
+   - **behavior_rules**: LLMの「賢すぎ問題」を抑制する明示ルール
+   - **evaluation_focus**: そのペルソナが重視する評価軸
+3. `templates/persona.template.yaml` を雛形として使用
+4. 生成後、ユーザーに確認を求め、調整があれば再生成
+
+## behavior_rules の設計指針 (CRITICAL)
+
+LLMは本質的に「賢く・協調的に・推論で突破する」傾向がある。
+リアルなユーザーをシミュレートするには、これを明示的に殺すルールが必要:
+
+- 技術リテラシーが低いペルソナ: "専門用語が出たら推論せず『分からない』と判断"
+- せっかちなペルソナ: "3秒以上の待機で離脱を検討"
+- 不安症ペルソナ: "個人情報入力フォームで一度操作を停止し、安全性を確認"
+- 慎重派ペルソナ: "エラーメッセージは読まず戻るボタンを優先"
+
+これらは「能力の制限」であり、ペルソナの忠実度を担保する核心部分。
+
+## 同梱ペルソナ
+
+`personas/` 配下に最低3体のサンプルを置く:
+- `tanaka-60s.yaml` — 技術リテラシー低、慎重派
+- `gal-20s.yaml` — モバイル中心、せっかち、視覚重視
+- `dev-engineer.yaml` — 高リテラシー、批判的、効率重視</pre>
+
+  <h3>テンプレート</h3>
+<pre data-lang="yaml"><span class="tok-c"># templates/persona.template.yaml</span>
+<span class="tok-p">id:</span> <span class="tok-s">&lt;kebab-case-id&gt;</span>
+<span class="tok-p">name:</span> <span class="tok-s">&lt;表示名&gt;</span>
+<span class="tok-p">version:</span> <span class="tok-s">"1.0"</span>
+
+<span class="tok-p">demographics:</span>
+  <span class="tok-p">age:</span> <span class="tok-n">&lt;number&gt;</span>
+  <span class="tok-p">occupation:</span> <span class="tok-s">&lt;string&gt;</span>
+  <span class="tok-p">tech_literacy:</span> <span class="tok-s">&lt;low | medium | high&gt;</span>
+  <span class="tok-p">language:</span> <span class="tok-s">ja</span>
+
+<span class="tok-p">context:</span>
+  <span class="tok-p">device:</span> <span class="tok-s">&lt;desktop | mobile | tablet&gt;</span>
+  <span class="tok-p">environment:</span> <span class="tok-s">&lt;short description&gt;</span>
+  <span class="tok-p">goal:</span> <span class="tok-s">&lt;what they want to accomplish&gt;</span>
+
+<span class="tok-p">personality:</span>
+  - <span class="tok-s">&lt;trait 1&gt;</span>
+  - <span class="tok-s">&lt;trait 2&gt;</span>
+  - <span class="tok-s">&lt;trait 3&gt;</span>
+
+<span class="tok-p">behavior_rules:</span>
+  - <span class="tok-s">&lt;explicit constraint suppressing LLM over-competence&gt;</span>
+  - <span class="tok-s">&lt;...&gt;</span>
+
+<span class="tok-p">evaluation_focus:</span>
+  - <span class="tok-s">first_impression</span>
+  - <span class="tok-s">text_readability</span>
+  - <span class="tok-s">error_recovery</span>
+
+<span class="tok-p">vocabulary:</span>
+  <span class="tok-p">tone:</span> <span class="tok-s">&lt;casual | formal | grumpy | enthusiastic&gt;</span>
+  <span class="tok-p">avoid_terms:</span> <span class="tok-p">[]</span>      <span class="tok-c"># 使わない技術用語</span></pre>
+</section>
+
+<!-- ===== 8. PERSONA TESTER ===== -->
+<section id="skill-tester">
+  <h2 data-num="§ 08">Skill: persona-tester</h2>
+  <p class="lead">指定されたペルソナ群を並列実行し、対象Webアプリを操作させてフィードバックを集約するスキル。</p>
+
+  <h3>SKILL.md（実装AI向けの仕様）</h3>
+
+<pre data-lang="markdown">---
+name: persona-tester
+description: Use when the user wants to test a web app with synthetic personas.
+  Triggers include "test my app with personas", "ペルソナにテストさせて",
+  "run persona feedback on &lt;url&gt;". Requires Playwright MCP. Spawns sub-agents
+  per persona, executes tasks, returns aggregated feedback.
+---
+
+# persona-tester
+
+複数の合成ペルソナをサブエージェントとして並列起動し、Webアプリを実際に操作させ、
+構造化フィードバックを集約する。
+
+## 入力
+
+ユーザーから以下を取得（不足あれば質問）:
+- **target**: テスト対象URL (必須)
+- **personas**: ペルソナIDのリスト or YAMLファイルパス (必須)
+- **task**: 実行させたいタスク (例: "新規登録してプロフィール画像をアップロード")
+- **feedback_spec**:
+    - focus: [usability, bugs, accessibility, conversion, copywriting]
+    - severity_threshold: low | medium | high
+    - output_format: markdown | json
+- **parallel**: bool (default true)
+
+## 実行フロー
+
+1. **検証フェーズ**
+   - 各ペルソナYAMLをスキーマ検証
+   - targetがアクセス可能か Playwright で先に確認
+
+2. **起動フェーズ**
+   - ペルソナごとに Task tool でサブエージェントを起動
+   - サブエージェントには以下を渡す:
+     - `agents/persona-runner.md` のシステムプロンプト
+     - 該当ペルソナのYAML（インラインで埋め込み）
+     - target URL とタスク
+     - feedback_spec
+     - Playwright MCPツールへのアクセス
+
+3. **実行フェーズ**（サブエージェント側）
+   - browser_navigate で target にアクセス
+   - ペルソナとして「自然に」タスクを試みる
+   - 各ステップで:
+     - 行動ログ（何を見て、何を考え、何をしたか）
+     - スクリーンショット（重要なステップ）
+     - 詰まり・違和感の記録
+   - タスク完了 or 諦めポイントで終了
+   - feedback.schema.json に準拠したJSONを返す
+
+4. **集約フェーズ**
+   - `scripts/aggregate.py` で全サブエージェント出力をマージ
+   - **不一致点を抽出**:
+     - 「全員が指摘した致命的問題」(severity = critical)
+     - 「特定セグメントだけが詰まった箇所」(segment-specific)
+     - 「ペルソナ間で評価が割れた要素」(controversial)
+   - feedback_spec.output_format に従いMarkdown/JSON出力
+
+## サブエージェントの数
+
+- 既定で 3〜5 ペルソナまで並列
+- 6体以上はシリアル実行も提案（コスト警告）
+
+## エラーハンドリング
+
+- 1ペルソナのセッション失敗で全体は止めない
+- 失敗ペルソナの理由（タイムアウト/MCP接続失敗/etc）をレポートに含める
+
+## 出力先
+
+- Markdown: 標準出力 + `reports/&lt;timestamp&gt;-report.md`
+- JSON: `reports/&lt;timestamp&gt;-report.json`
+- スクリーンショット: `reports/&lt;timestamp&gt;/screenshots/`</pre>
+</section>
+
+<!-- ===== 9. SCHEMAS ===== -->
+<section id="schemas">
+  <h2 data-num="§ 09">Schemas</h2>
+
+  <h3>persona.schema.json</h3>
+<pre data-lang="json"><span class="tok-p">{</span>
+  <span class="tok-p">"$schema"</span>: <span class="tok-s">"https://json-schema.org/draft/2020-12/schema"</span>,
+  <span class="tok-p">"$id"</span>: <span class="tok-s">"persona.schema.json"</span>,
+  <span class="tok-p">"type"</span>: <span class="tok-s">"object"</span>,
+  <span class="tok-p">"required"</span>: <span class="tok-p">[</span><span class="tok-s">"id"</span>, <span class="tok-s">"name"</span>, <span class="tok-s">"demographics"</span>, <span class="tok-s">"context"</span>, <span class="tok-s">"behavior_rules"</span><span class="tok-p">]</span>,
+  <span class="tok-p">"properties"</span>: <span class="tok-p">{</span>
+    <span class="tok-p">"id"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span>, <span class="tok-p">"pattern"</span>: <span class="tok-s">"^[a-z0-9-]+$"</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"name"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"version"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"demographics"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"type"</span>: <span class="tok-s">"object"</span>,
+      <span class="tok-p">"required"</span>: <span class="tok-p">[</span><span class="tok-s">"tech_literacy"</span><span class="tok-p">]</span>,
+      <span class="tok-p">"properties"</span>: <span class="tok-p">{</span>
+        <span class="tok-p">"age"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"integer"</span> <span class="tok-p">}</span>,
+        <span class="tok-p">"occupation"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+        <span class="tok-p">"tech_literacy"</span>: <span class="tok-p">{</span> <span class="tok-p">"enum"</span>: <span class="tok-p">[</span><span class="tok-s">"low"</span>, <span class="tok-s">"medium"</span>, <span class="tok-s">"high"</span><span class="tok-p">]</span> <span class="tok-p">}</span>,
+        <span class="tok-p">"language"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">}</span>,
+    <span class="tok-p">"context"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"type"</span>: <span class="tok-s">"object"</span>,
+      <span class="tok-p">"required"</span>: <span class="tok-p">[</span><span class="tok-s">"device"</span>, <span class="tok-s">"goal"</span><span class="tok-p">]</span>,
+      <span class="tok-p">"properties"</span>: <span class="tok-p">{</span>
+        <span class="tok-p">"device"</span>: <span class="tok-p">{</span> <span class="tok-p">"enum"</span>: <span class="tok-p">[</span><span class="tok-s">"desktop"</span>, <span class="tok-s">"mobile"</span>, <span class="tok-s">"tablet"</span><span class="tok-p">]</span> <span class="tok-p">}</span>,
+        <span class="tok-p">"environment"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+        <span class="tok-p">"goal"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">}</span>,
+    <span class="tok-p">"personality"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"array"</span>, <span class="tok-p">"items"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"behavior_rules"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"type"</span>: <span class="tok-s">"array"</span>,
+      <span class="tok-p">"minItems"</span>: <span class="tok-n">1</span>,
+      <span class="tok-p">"items"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>
+    <span class="tok-p">}</span>,
+    <span class="tok-p">"evaluation_focus"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"array"</span>, <span class="tok-p">"items"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"vocabulary"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"type"</span>: <span class="tok-s">"object"</span>,
+      <span class="tok-p">"properties"</span>: <span class="tok-p">{</span>
+        <span class="tok-p">"tone"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+        <span class="tok-p">"avoid_terms"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"array"</span>, <span class="tok-p">"items"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span> <span class="tok-p">}</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></pre>
+
+  <h3>feedback.schema.json</h3>
+<pre data-lang="json"><span class="tok-p">{</span>
+  <span class="tok-p">"$schema"</span>: <span class="tok-s">"https://json-schema.org/draft/2020-12/schema"</span>,
+  <span class="tok-p">"$id"</span>: <span class="tok-s">"feedback.schema.json"</span>,
+  <span class="tok-p">"type"</span>: <span class="tok-s">"object"</span>,
+  <span class="tok-p">"required"</span>: <span class="tok-p">[</span><span class="tok-s">"persona_id"</span>, <span class="tok-s">"target"</span>, <span class="tok-s">"task"</span>, <span class="tok-s">"outcome"</span>, <span class="tok-s">"findings"</span><span class="tok-p">]</span>,
+  <span class="tok-p">"properties"</span>: <span class="tok-p">{</span>
+    <span class="tok-p">"persona_id"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"target"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span>, <span class="tok-p">"format"</span>: <span class="tok-s">"uri"</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"task"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"started_at"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span>, <span class="tok-p">"format"</span>: <span class="tok-s">"date-time"</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"duration_seconds"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"number"</span> <span class="tok-p">}</span>,
+    <span class="tok-p">"outcome"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"enum"</span>: <span class="tok-p">[</span><span class="tok-s">"completed"</span>, <span class="tok-s">"abandoned"</span>, <span class="tok-s">"blocked"</span>, <span class="tok-s">"error"</span><span class="tok-p">]</span>
+    <span class="tok-p">}</span>,
+    <span class="tok-p">"narrative"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span>,
+      <span class="tok-p">"description"</span>: <span class="tok-s">"ペルソナ視点での一人称ナレーション"</span>
+    <span class="tok-p">}</span>,
+    <span class="tok-p">"findings"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"type"</span>: <span class="tok-s">"array"</span>,
+      <span class="tok-p">"items"</span>: <span class="tok-p">{</span>
+        <span class="tok-p">"type"</span>: <span class="tok-s">"object"</span>,
+        <span class="tok-p">"required"</span>: <span class="tok-p">[</span><span class="tok-s">"category"</span>, <span class="tok-s">"severity"</span>, <span class="tok-s">"description"</span><span class="tok-p">]</span>,
+        <span class="tok-p">"properties"</span>: <span class="tok-p">{</span>
+          <span class="tok-p">"category"</span>: <span class="tok-p">{</span>
+            <span class="tok-p">"enum"</span>: <span class="tok-p">[</span><span class="tok-s">"usability"</span>, <span class="tok-s">"bug"</span>, <span class="tok-s">"accessibility"</span>, <span class="tok-s">"copywriting"</span>, <span class="tok-s">"performance"</span>, <span class="tok-s">"trust"</span><span class="tok-p">]</span>
+          <span class="tok-p">}</span>,
+          <span class="tok-p">"severity"</span>: <span class="tok-p">{</span> <span class="tok-p">"enum"</span>: <span class="tok-p">[</span><span class="tok-s">"low"</span>, <span class="tok-s">"medium"</span>, <span class="tok-s">"high"</span>, <span class="tok-s">"critical"</span><span class="tok-p">]</span> <span class="tok-p">}</span>,
+          <span class="tok-p">"location"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span>, <span class="tok-p">"description"</span>: <span class="tok-s">"URL or DOM selector"</span> <span class="tok-p">}</span>,
+          <span class="tok-p">"description"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+          <span class="tok-p">"quote"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span>, <span class="tok-p">"description"</span>: <span class="tok-s">"ペルソナの生の声"</span> <span class="tok-p">}</span>,
+          <span class="tok-p">"screenshot"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>,
+          <span class="tok-p">"suggestion"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"string"</span> <span class="tok-p">}</span>
+        <span class="tok-p">}</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">}</span>,
+    <span class="tok-p">"score"</span>: <span class="tok-p">{</span>
+      <span class="tok-p">"type"</span>: <span class="tok-s">"object"</span>,
+      <span class="tok-p">"properties"</span>: <span class="tok-p">{</span>
+        <span class="tok-p">"overall"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"number"</span>, <span class="tok-p">"minimum"</span>: <span class="tok-n">0</span>, <span class="tok-p">"maximum"</span>: <span class="tok-n">10</span> <span class="tok-p">}</span>,
+        <span class="tok-p">"would_recommend"</span>: <span class="tok-p">{</span> <span class="tok-p">"type"</span>: <span class="tok-s">"boolean"</span> <span class="tok-p">}</span>
+      <span class="tok-p">}</span>
+    <span class="tok-p">}</span>
+  <span class="tok-p">}</span>
+<span class="tok-p">}</span></pre>
+</section>
+
+<!-- ===== 10. PERSONAS ===== -->
+<section id="personas">
+  <h2 data-num="§ 10">Built-in Personas</h2>
+  <p>v0.1で同梱するペルソナ3体の仕様。実装AIは <code>personas/</code> 配下にこれらを正式なYAMLとして配置すること。</p>
+
+  <h3>tanaka-60s.yaml（高齢・低リテラシー）</h3>
+<pre data-lang="yaml"><span class="tok-p">id:</span> <span class="tok-s">tanaka-60s</span>
+<span class="tok-p">name:</span> <span class="tok-s">田中さん（60代・元教師）</span>
+<span class="tok-p">version:</span> <span class="tok-s">"1.0"</span>
+<span class="tok-p">demographics:</span>
+  <span class="tok-p">age:</span> <span class="tok-n">62</span>
+  <span class="tok-p">occupation:</span> <span class="tok-s">退職後</span>
+  <span class="tok-p">tech_literacy:</span> <span class="tok-s">low</span>
+  <span class="tok-p">language:</span> <span class="tok-s">ja</span>
+<span class="tok-p">context:</span>
+  <span class="tok-p">device:</span> <span class="tok-s">mobile</span>
+  <span class="tok-p">environment:</span> <span class="tok-s">"自宅、老眼鏡あり、Wi-Fi接続、スマホ文字サイズ最大"</span>
+  <span class="tok-p">goal:</span> <span class="tok-s">"孫の写真を共有アプリで確認したい"</span>
+<span class="tok-p">personality:</span>
+  - <span class="tok-s">"せっかち（3秒待たされるとイラつく）"</span>
+  - <span class="tok-s">"不安症（個人情報入力で固まる）"</span>
+  - <span class="tok-s">"推測しない（書いてあることだけやる）"</span>
+<span class="tok-p">behavior_rules:</span>
+  - <span class="tok-s">"カタカナの技術用語が出たら『分からない』と判断し離脱検討"</span>
+  - <span class="tok-s">"エラーメッセージは読まずに戻るボタンを押す"</span>
+  - <span class="tok-s">"推論で突破せず、画面に明示されていることだけで判断する"</span>
+  - <span class="tok-s">"アイコンのみのボタンは何のためか分からないと感じる"</span>
+  - <span class="tok-s">"ポップアップ・モーダルは『広告かも』と疑い閉じる"</span>
+<span class="tok-p">evaluation_focus:</span>
+  - <span class="tok-s">first_impression</span>
+  - <span class="tok-s">text_readability</span>
+  - <span class="tok-s">error_recovery</span>
+  - <span class="tok-s">trust</span>
+<span class="tok-p">vocabulary:</span>
+  <span class="tok-p">tone:</span> <span class="tok-s">cautious</span>
+  <span class="tok-p">avoid_terms:</span> <span class="tok-p">[</span><span class="tok-s">"アップロード"</span>, <span class="tok-s">"認証"</span>, <span class="tok-s">"トークン"</span>, <span class="tok-s">"OAuth"</span><span class="tok-p">]</span></pre>
+
+  <h3>gal-20s.yaml（モバイル中心・せっかち）</h3>
+<pre data-lang="yaml"><span class="tok-p">id:</span> <span class="tok-s">gal-20s</span>
+<span class="tok-p">name:</span> <span class="tok-s">マイカ（20代・SNS大好き）</span>
+<span class="tok-p">version:</span> <span class="tok-s">"1.0"</span>
+<span class="tok-p">demographics:</span>
+  <span class="tok-p">age:</span> <span class="tok-n">22</span>
+  <span class="tok-p">occupation:</span> <span class="tok-s">"アパレル販売員"</span>
+  <span class="tok-p">tech_literacy:</span> <span class="tok-s">medium</span>
+  <span class="tok-p">language:</span> <span class="tok-s">ja</span>
+<span class="tok-p">context:</span>
+  <span class="tok-p">device:</span> <span class="tok-s">mobile</span>
+  <span class="tok-p">environment:</span> <span class="tok-s">"通勤電車、片手操作、4G、画面の明るさは中"</span>
+  <span class="tok-p">goal:</span> <span class="tok-s">"気になったサービスをサクッと試したい"</span>
+<span class="tok-p">personality:</span>
+  - <span class="tok-s">"見た目重視（ダサいUIは即離脱）"</span>
+  - <span class="tok-s">"せっかち（読まずに進む）"</span>
+  - <span class="tok-s">"SNS慣れ（インスタ的UIに親和性）"</span>
+<span class="tok-p">behavior_rules:</span>
+  - <span class="tok-s">"3画面以上の入力フォームは『めんどい』と離脱"</span>
+  - <span class="tok-s">"文章は最初の1行しか読まない"</span>
+  - <span class="tok-s">"スワイプとタップを基本操作と想定、それ以外は困惑"</span>
+  - <span class="tok-s">"PCサイトのままモバイル表示されてると即戻る"</span>
+<span class="tok-p">evaluation_focus:</span>
+  - <span class="tok-s">visual_appeal</span>
+  - <span class="tok-s">speed</span>
+  - <span class="tok-s">mobile_optimization</span>
+<span class="tok-p">vocabulary:</span>
+  <span class="tok-p">tone:</span> <span class="tok-s">casual</span></pre>
+
+  <h3>dev-engineer.yaml（高リテラシー・批判的）</h3>
+<pre data-lang="yaml"><span class="tok-p">id:</span> <span class="tok-s">dev-engineer</span>
+<span class="tok-p">name:</span> <span class="tok-s">武田（30代・シニアエンジニア）</span>
+<span class="tok-p">version:</span> <span class="tok-s">"1.0"</span>
+<span class="tok-p">demographics:</span>
+  <span class="tok-p">age:</span> <span class="tok-n">34</span>
+  <span class="tok-p">occupation:</span> <span class="tok-s">"バックエンドエンジニア"</span>
+  <span class="tok-p">tech_literacy:</span> <span class="tok-s">high</span>
+  <span class="tok-p">language:</span> <span class="tok-s">ja</span>
+<span class="tok-p">context:</span>
+  <span class="tok-p">device:</span> <span class="tok-s">desktop</span>
+  <span class="tok-p">environment:</span> <span class="tok-s">"Mac, Chrome+DevTools, 高速回線"</span>
+  <span class="tok-p">goal:</span> <span class="tok-s">"このサービスが業務で使えるか評価したい"</span>
+<span class="tok-p">personality:</span>
+  - <span class="tok-s">"批判的（マーケコピーを疑う）"</span>
+  - <span class="tok-s">"効率重視（無駄な手順を嫌う）"</span>
+  - <span class="tok-s">"プライバシー懸念あり"</span>
+<span class="tok-p">behavior_rules:</span>
+  - <span class="tok-s">"利用規約・プライバシーポリシーを必ず確認"</span>
+  - <span class="tok-s">"DevToolsでネットワーク・コンソールエラーを観察"</span>
+  - <span class="tok-s">"パフォーマンス指標（LCP感覚）を意識"</span>
+  - <span class="tok-s">"APIドキュメントの有無を気にする"</span>
+<span class="tok-p">evaluation_focus:</span>
+  - <span class="tok-s">performance</span>
+  - <span class="tok-s">security</span>
+  - <span class="tok-s">api_quality</span>
+  - <span class="tok-s">documentation</span>
+<span class="tok-p">vocabulary:</span>
+  <span class="tok-p">tone:</span> <span class="tok-s">analytical</span></pre>
+</section>
+
+<!-- ===== 11. SUBAGENT ===== -->
+<section id="subagent">
+  <h2 data-num="§ 11">Sub-agent Definition</h2>
+  <p><code>agents/persona-runner.md</code> はサブエージェントのシステムプロンプトを定義する。Claude CodeのTask toolはこのファイルを参照する。</p>
+
+<pre data-lang="markdown">---
+name: persona-runner
+description: A sub-agent that adopts a synthetic persona and performs UX testing
+  on a target web app via Playwright MCP. Returns structured feedback.
+tools:
+  - mcp__playwright__browser_navigate
+  - mcp__playwright__browser_snapshot
+  - mcp__playwright__browser_click
+  - mcp__playwright__browser_type
+  - mcp__playwright__browser_take_screenshot
+  - mcp__playwright__browser_wait_for
+  - Write
+---
+
+あなたは合成ペルソナとしてWebアプリをテストするサブエージェントである。
+
+# 守るべき原則
+
+1. **あなたはペルソナそのものになりきる**。あなたの「Claude としての賢さ」は
+   一切使わない。ペルソナの `behavior_rules` を文字通り守ること。
+
+2. **推論で突破しない**。例えば技術リテラシー low のペルソナで「アップロード」
+   という単語を見たら、知らないものは知らない。意味を推測しない。
+
+3. **一人称で考える**。「私（このペルソナ）はこのボタンの意味が分からない。」
+   と内的独白として記録する。
+
+4. **諦めることを恐れない**。実ユーザーは詰まったら離脱する。ペルソナが
+   詰まったら、無理に解決せず `outcome: abandoned` で終了してよい。
+
+5. **証拠を残す**。重要な瞬間にはスクリーンショットを撮る。
+
+# 実行手順
+
+1. 受け取った persona YAML を熟読し、自分がそのペルソナだと内面化する
+2. target URL に navigate
+3. snapshot で画面構造を把握
+4. ペルソナの第一印象を narrative に記録
+5. task を実行する（ペルソナの能力範囲で）
+6. 各ステップで findings を蓄積
+7. タスク完了 / 諦め / エラーで終了
+8. feedback.schema.json に準拠したJSONを最終出力
+
+# 出力形式
+
+最終メッセージで必ず以下を返す:
+
+```json
+{
+  "persona_id": "...",
+  "target": "...",
+  "task": "...",
+  "outcome": "completed | abandoned | blocked | error",
+  "narrative": "私は...と感じた。...",
+  "findings": [ ... ],
+  "score": { "overall": 6.5, "would_recommend": false }
+}
+```</pre>
+</section>
+
+<!-- ===== 12. PHASES ===== -->
+<section id="phases">
+  <h2 data-num="§ 12">Development Phases</h2>
+  <p>各フェーズは独立してマージ可能。Acceptance Criteriaを満たさない限り次フェーズに進まない。</p>
+
+  <div class="phases">
+
+    <div class="phase">
+      <div class="phase-num">0<small>setup</small></div>
+      <div class="phase-body">
+        <h4>基盤構築</h4>
+        <div class="duration">⏱ 1〜2 days</div>
+        <ul>
+          <li>GitHubリポ作成（public）</li>
+          <li>ディレクトリ構造の骨組み（§4参照）</li>
+          <li><code>marketplace.json</code> と <code>plugin.json</code> の雛形配置（§5参照）</li>
+          <li>README.md（インストール方法、ステータス：WIP）</li>
+          <li>MIT LICENSE</li>
+          <li>CHANGELOG.md（Keep a Changelog形式）</li>
+        </ul>
+        <div class="accept"><strong>Accept</strong> ローカルで <code>/plugin marketplace add ./</code> が成功し、<code>/plugin install persona-feedback@persona-feedback</code> でインストールできる（中身は空でよい）。</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">1<small>builder</small></div>
+      <div class="phase-body">
+        <h4>persona-builder MVP</h4>
+        <div class="duration">⏱ 2〜3 days</div>
+        <ul>
+          <li><code>skills/persona-builder/SKILL.md</code> 実装（§7参照）</li>
+          <li><code>templates/persona.template.yaml</code> 配置</li>
+          <li><code>schemas/persona.schema.json</code> 配置（§9参照）</li>
+          <li>同梱ペルソナ3体を <code>personas/</code> に配置（§10参照）</li>
+          <li>動作確認：Claude Codeで「ECサイト向けに2人ペルソナ作って」と依頼してYAML生成</li>
+        </ul>
+        <div class="accept"><strong>Accept</strong> 自然言語入力からスキーマ準拠のYAMLが生成され、ファイル保存される。<code>behavior_rules</code>が空でなく、LLM抑制ルールを少なくとも1つ含む。</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">2<small>tester</small></div>
+      <div class="phase-body">
+        <h4>persona-tester MVP（シリアル）</h4>
+        <div class="duration">⏱ 3〜5 days</div>
+        <ul>
+          <li><code>.mcp.json</code> にPlaywright登録（§6参照）</li>
+          <li><code>agents/persona-runner.md</code> 配置（§11参照）</li>
+          <li><code>skills/persona-tester/SKILL.md</code> 実装（§8参照）</li>
+          <li><code>schemas/feedback.schema.json</code> 配置（§9参照）</li>
+          <li><strong>1ペルソナ シリアル実行のみ</strong>でOK（並列はPhase 3）</li>
+          <li>サンプルアプリ（<code>examples/demo-app/</code>）で動作確認</li>
+        </ul>
+        <div class="accept"><strong>Accept</strong> 「<code>tanaka-60s</code>で <code>localhost:3000</code> にログインさせて」で、Playwrightが実際に画面操作し、スキーマ準拠のJSONフィードバックが返る。</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">3<small>parallel</small></div>
+      <div class="phase-body">
+        <h4>並列実行 &amp; 集約</h4>
+        <div class="duration">⏱ 2〜3 days</div>
+        <ul>
+          <li>複数ペルソナ並列起動（Task tool複数呼び出し）</li>
+          <li><code>scripts/aggregate.py</code> 実装（不一致点抽出）</li>
+          <li>Markdownレポート生成</li>
+          <li>JSON出力対応</li>
+          <li>スクリーンショット集約</li>
+        </ul>
+        <div class="accept"><strong>Accept</strong> 3ペルソナ並列実行 → 統合レポートMarkdownが生成。「全員指摘」「セグメント特有」「評価分裂」の3カテゴリが明示される。</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">4<small>release</small></div>
+      <div class="phase-body">
+        <h4>配布準備 &amp; v0.1リリース</h4>
+        <div class="duration">⏱ 1〜2 days</div>
+        <ul>
+          <li>README充実（デモGIF、インストール、使用例）</li>
+          <li><code>docs/</code> 配下のドキュメント整備</li>
+          <li>GitHub Actions（validate.yml, release.yml）</li>
+          <li>v0.1.0タグ → GitHub Release作成</li>
+          <li>別マシン or クリーン環境で <code>/plugin marketplace add github:owner/persona-feedback</code> 動作確認</li>
+        </ul>
+        <div class="accept"><strong>Accept</strong> サードパーティが公開リポからインストールして動かせる。READMEだけで使い始められる。</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">5<small>v0.2+</small></div>
+      <div class="phase-body">
+        <h4>将来拡張（v0.1以降）</h4>
+        <div class="duration">⏱ Roadmap</div>
+        <ul>
+          <li>Agent SDK版（Python実装、永続メモリ）</li>
+          <li>回帰テストモード（前回との差分）</li>
+          <li>API / CLIアプリ対応</li>
+          <li>ペルソナ間のディスカッション（合議モード）</li>
+          <li>カスタムMCPツール追加（lighthouse, axe等）</li>
+        </ul>
+        <div class="accept"><strong>Accept</strong> v0.1の安定運用が確認できてから着手する。</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== 13. CICD ===== -->
+<section id="cicd">
+  <h2 data-num="§ 13">CI / CD</h2>
+
+  <h3>.github/workflows/validate.yml</h3>
+  <p>PR時にスキーマ検証とlint。</p>
+<pre data-lang="yaml"><span class="tok-p">name:</span> <span class="tok-s">validate</span>
+<span class="tok-p">on:</span> <span class="tok-p">[</span><span class="tok-s">pull_request</span>, <span class="tok-s">push</span><span class="tok-p">]</span>
+<span class="tok-p">jobs:</span>
+  <span class="tok-p">validate:</span>
+    <span class="tok-p">runs-on:</span> <span class="tok-s">ubuntu-latest</span>
+    <span class="tok-p">steps:</span>
+      - <span class="tok-p">uses:</span> <span class="tok-s">actions/checkout@v4</span>
+      - <span class="tok-p">uses:</span> <span class="tok-s">actions/setup-node@v4</span>
+        <span class="tok-p">with:</span> <span class="tok-p">{</span> <span class="tok-p">node-version:</span> <span class="tok-s">"20"</span> <span class="tok-p">}</span>
+      - <span class="tok-p">name:</span> <span class="tok-s">"Validate plugin manifests"</span>
+        <span class="tok-p">run:</span> <span class="tok-s">"npx github:hesreallyhim/claude-code-json-schema ."</span>
+      - <span class="tok-p">name:</span> <span class="tok-s">"Validate persona YAMLs"</span>
+        <span class="tok-p">run:</span> <span class="tok-p">|</span>
+          <span class="tok-s">pip install jsonschema pyyaml</span>
+          <span class="tok-s">python tests/validate_personas.py</span></pre>
+
+  <h3>.github/workflows/release.yml</h3>
+  <p>タグpushでReleaseを自動生成。</p>
+<pre data-lang="yaml"><span class="tok-p">name:</span> <span class="tok-s">release</span>
+<span class="tok-p">on:</span>
+  <span class="tok-p">push:</span>
+    <span class="tok-p">tags:</span> <span class="tok-p">[</span><span class="tok-s">"v*"</span><span class="tok-p">]</span>
+<span class="tok-p">jobs:</span>
+  <span class="tok-p">release:</span>
+    <span class="tok-p">runs-on:</span> <span class="tok-s">ubuntu-latest</span>
+    <span class="tok-p">permissions:</span> <span class="tok-p">{</span> <span class="tok-p">contents:</span> <span class="tok-s">write</span> <span class="tok-p">}</span>
+    <span class="tok-p">steps:</span>
+      - <span class="tok-p">uses:</span> <span class="tok-s">actions/checkout@v4</span>
+      - <span class="tok-p">uses:</span> <span class="tok-s">softprops/action-gh-release@v2</span>
+        <span class="tok-p">with:</span>
+          <span class="tok-p">generate_release_notes:</span> <span class="tok-s">true</span></pre>
+</section>
+
+<!-- ===== 14. TESTING ===== -->
+<section id="testing">
+  <h2 data-num="§ 14">Testing Strategy</h2>
+
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>What</th><th>Tool</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Schema</td>
+        <td>persona.yaml / feedback.json がスキーマ準拠</td>
+        <td><code>jsonschema</code> (Python)</td>
+      </tr>
+      <tr>
+        <td>Manifest</td>
+        <td>plugin.json / marketplace.json の正当性</td>
+        <td>claude-code-json-schema</td>
+      </tr>
+      <tr>
+        <td>Smoke</td>
+        <td>サンプルアプリに対する1ペルソナ実行</td>
+        <td>手動 + scripted via Claude Code SDK</td>
+      </tr>
+      <tr>
+        <td>Integration</td>
+        <td>並列3ペルソナ → レポート生成</td>
+        <td>手動（v0.1では）</td>
+      </tr>
+      <tr>
+        <td>Regression</td>
+        <td>同一ペルソナ同一タスクで結果安定性</td>
+        <td>v0.2以降で自動化検討</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="label">Sample app</span>
+    <p><code>examples/demo-app/</code> にバグを意図的に仕込んだサンプルWebアプリを置く（小さなNext.jsアプリ等）。ペルソナテストの教材兼スモークテスト対象。仕込むバグ：(1) 小さすぎる文字 (2) 不明瞭なエラー文言 (3) モバイルでタップしにくいボタン (4) 専門用語の多用 — 各ペルソナがどれを検出するかでスキルの品質を評価。</p>
+  </div>
+</section>
+
+<!-- ===== 15. RELEASE ===== -->
+<section id="release">
+  <h2 data-num="§ 15">Release Strategy</h2>
+
+  <h3>Versioning</h3>
+  <ul>
+    <li><strong>SemVer 厳守</strong>：<code>plugin.json</code> と <code>marketplace.json</code> の <code>version</code> を同期</li>
+    <li><strong>v0.1.x</strong>：MVP、破壊的変更を許容</li>
+    <li><strong>v1.0.0</strong>：API安定。スキーマ後方互換を保証</li>
+  </ul>
+
+  <h3>Release Checklist</h3>
+  <ol>
+    <li>CHANGELOG更新（Added / Changed / Fixed / Removed）</li>
+    <li><code>plugin.json</code> &amp; <code>marketplace.json</code> のversion更新</li>
+    <li>READMEのバッジ・サポート対象更新</li>
+    <li><code>git tag v0.1.0 &amp;&amp; git push --tags</code></li>
+    <li>GitHub Actionsがリリース作成（手動でnotes編集）</li>
+    <li>動作確認：別環境でインストール</li>
+    <li>SNS等で告知（任意）</li>
+  </ol>
+
+  <h3>Update Flow for Users</h3>
+<pre data-lang="bash"><span class="tok-c"># ユーザー側はワンコマンドで更新</span>
+/plugin marketplace update persona-feedback
+/plugin update persona-feedback@persona-feedback</pre>
+</section>
+
+<!-- ===== 16. DECISIONS ===== -->
+<section id="decisions">
+  <h2 data-num="§ 16">Open Decisions</h2>
+  <p>実装AIは以下の論点について、コードを書く前にユーザーに確認すること。</p>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Topic</th><th>Question</th><th>Default</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>D-01</td>
+        <td>所有者情報</td>
+        <td>manifestの<code>owner.name</code> / <code>author.name</code> / GitHubハンドル</td>
+        <td>ユーザーに確認</td>
+      </tr>
+      <tr>
+        <td>D-02</td>
+        <td>言語サポート</td>
+        <td>READMEは日英バイリンガル？日本語のみ？</td>
+        <td>日本語メイン、英語サマリ</td>
+      </tr>
+      <tr>
+        <td>D-03</td>
+        <td>Playwright MCP起源</td>
+        <td>Microsoft公式 vs サードパーティ。最新のpackage名を確認</td>
+        <td><code>@playwright/mcp</code></td>
+      </tr>
+      <tr>
+        <td>D-04</td>
+        <td>aggregateスクリプト</td>
+        <td>Python（pyyaml等必要） vs シェル+jq vs Claudeで直接集約</td>
+        <td>Python（最も柔軟）</td>
+      </tr>
+      <tr>
+        <td>D-05</td>
+        <td>サンプルアプリ</td>
+        <td>Next.js? 静的HTML? 別途用意せず公開サイトを使う?</td>
+        <td>静的HTML（依存最小）</td>
+      </tr>
+      <tr>
+        <td>D-06</td>
+        <td>スクリーンショット保存</td>
+        <td>プラグインキャッシュ内 vs ユーザーのcwd</td>
+        <td>cwd/<code>reports/</code></td>
+      </tr>
+      <tr>
+        <td>D-07</td>
+        <td>並列ペルソナ上限</td>
+        <td>3? 5? 上限なし?</td>
+        <td>5（コスト警告つき）</td>
+      </tr>
+      <tr>
+        <td>D-08</td>
+        <td>失敗時の挙動</td>
+        <td>1ペルソナ失敗で全体fail vs partial success</td>
+        <td>partial success</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout hot">
+    <span class="label">Critical design tension</span>
+    <p>LLMサブエージェントは本質的に「賢く・協調的・推論で突破する」傾向があり、初心者ユーザーの<em>困惑</em>を再現できない可能性がある。これは本プラグインの<strong>最大の構造的リスク</strong>である。対策として：</p>
+    <ul style="margin-top:8px;">
+      <li><code>behavior_rules</code> に明示的な能力制限を書く（§7参照）</li>
+      <li>サブエージェントシステムプロンプトで「Claudeとしての賢さを使うな」と強調（§11参照）</li>
+      <li>ペルソナ間の不一致を価値情報とする（全員「いい感じ」は信用しない）</li>
+      <li>v0.2でreal user testとの相関スタディを行う（ロードマップ）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 17. REFS ===== -->
+<section id="refs">
+  <h2 data-num="§ 17">References</h2>
+  <ul>
+    <li><a href="https://code.claude.com/docs/en/plugin-marketplaces">Claude Code Docs — Plugin Marketplaces</a></li>
+    <li><a href="https://github.com/anthropics/claude-plugins-official">anthropics/claude-plugins-official</a></li>
+    <li><a href="https://github.com/anthropics/claude-code">anthropics/claude-code（bundled plugin marketplace.json）</a></li>
+    <li><a href="https://github.com/hesreallyhim/claude-code-json-schema">JSON Schemas for plugin.json / marketplace.json</a></li>
+    <li><a href="https://github.com/microsoft/playwright-mcp">Microsoft Playwright MCP</a></li>
+    <li><a href="https://keepachangelog.com/">Keep a Changelog</a></li>
+    <li><a href="https://semver.org/">Semantic Versioning</a></li>
+  </ul>
+</section>
+
+<footer>
+  <span>persona-feedback · plan v0.1</span>
+  <span>handoff document for implementation AI</span>
+</footer>
+
+</main>
+</div>
+</body>
+</html>
