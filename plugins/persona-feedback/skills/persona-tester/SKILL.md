@@ -44,6 +44,10 @@ description: Use when the user wants to test a web app with synthetic personas.
 ペルソナごとに **Task tool** を呼び出してサブエージェントを起動する。
 サブエージェント定義は `agents/persona-runner.md`。
 
+起動前にメインエージェントは **run timestamp** を1つ確定する（例:
+`20260511-100000`）。これは全ペルソナで共有し、`reports/<timestamp>/...` の
+ディレクトリ構造を統一する。
+
 Task 呼び出しのプロンプトには以下をインラインで埋め込む:
 
 ```
@@ -62,12 +66,20 @@ target: <URL>
 focus: <focus list>
 severity_threshold: <threshold>
 
-# 出力先
-screenshots を保存する場合のファイル名プレフィクスは <persona_id>- にしてください。
-最終的にfeedback.schema.json 準拠の JSON のみを返してください。
+# スクリーンショット保存先（MCP の --output-dir からの相対パス）
+screenshot_dir: <timestamp>/screenshots/
+ファイル名は <persona_id>-<連番>-<短い説明>.png 形式で
+browser_take_screenshot の filename に「screenshot_dir + ファイル名」を渡してください。
+
+# 出力契約
+findings の screenshot フィールドには上記の相対パスをそのまま記録すること。
+最終メッセージは feedback.schema.json 準拠の JSON のみを返してください。
 ```
 
 `parallel: true` の場合、**同一メッセージ内で複数の Task 呼び出しを並列に発行する**。
+`.mcp.json` の `--isolated` フラグにより、ペルソナごとに別ブラウザコンテキスト
+（別 Cookie/別 localStorage）が割り当てられるため、入力が他人に書き換わる
+ような干渉は発生しない。
 
 ### 3. 実行フェーズ（サブエージェント側）
 
