@@ -17,10 +17,15 @@ import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'n
 import { dirname, join, resolve, extname, basename } from 'node:path';
 
 function parseArgs(argv) {
-  const args = { format: 'markdown' };
+  const args = { format: 'markdown', feedbacks: [] };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--feedbacks') args.feedbacks = argv[++i];
+    if (a === '--feedbacks') {
+      // --feedbacks は繰り返し指定可。次の --foo まで全部値として吸う。
+      while (i + 1 < argv.length && !argv[i + 1].startsWith('--')) {
+        args.feedbacks.push(argv[++i]);
+      }
+    }
     else if (a === '--output') args.output = argv[++i];
     else if (a === '--format') args.format = argv[++i];
     else if (a === '--help' || a === '-h') args.help = true;
@@ -29,11 +34,21 @@ function parseArgs(argv) {
 }
 
 function usage() {
-  console.log(`Usage: aggregate.mjs --feedbacks <dir-or-glob> --output <file> [--format markdown|json|both]`);
+  console.log(
+    `Usage: aggregate.mjs --feedbacks <path> [<path> ...] --output <file> [--format markdown|json|both]\n` +
+    `\n` +
+    `<path> はいずれでも可:\n` +
+    `  - 単一の JSON ファイル\n` +
+    `  - ディレクトリ（配下の *.json を全部）\n` +
+    `  - "<dir>/*.json" 形式の glob（シェル未展開で渡された場合）\n` +
+    `\n` +
+    `--feedbacks は複数の値を取れる。例:\n` +
+    `  aggregate.mjs --feedbacks raw/tanaka.json raw/gal.json raw/dev.json --output r.md`
+  );
 }
 
-function collectFeedbackFiles(feedbacksArg) {
-  const p = resolve(feedbacksArg);
+function collectOnePath(arg) {
+  const p = resolve(arg);
   let stat;
   try { stat = statSync(p); } catch { stat = null; }
   if (stat && stat.isDirectory()) {
@@ -42,10 +57,9 @@ function collectFeedbackFiles(feedbacksArg) {
       .sort()
       .map(f => join(p, f));
   }
-  // 簡易 glob: 「ディレクトリ/*.json」だけをサポート。
-  // 前置パターン（例: reports/foo-*.json）は誤動作の温床なのでエラーにする。
-  if (feedbacksArg.includes('*')) {
-    if (feedbacksArg.endsWith('/*.json')) {
+  // 簡易 glob: 「ディレクトリ/*.json」だけサポート。前置パターン等はエラー。
+  if (arg.includes('*')) {
+    if (arg.endsWith('/*.json')) {
       const dir = dirname(p);
       return readdirSync(dir)
         .filter(f => extname(f) === '.json')
@@ -53,12 +67,26 @@ function collectFeedbackFiles(feedbacksArg) {
         .map(f => join(dir, f));
     }
     throw new Error(
-      `Unsupported glob pattern: ${feedbacksArg}\n` +
+      `Unsupported glob pattern: ${arg}\n` +
       `Only "<dir>/*.json" or a plain directory/file path is supported.`
     );
   }
   if (stat && stat.isFile()) return [p];
-  throw new Error(`feedbacks not found: ${feedbacksArg}`);
+  throw new Error(`feedbacks not found: ${arg}`);
+}
+
+function collectFeedbackFiles(feedbackArgs) {
+  const out = [];
+  const seen = new Set();
+  for (const a of feedbackArgs) {
+    for (const f of collectOnePath(a)) {
+      if (!seen.has(f)) {
+        seen.add(f);
+        out.push(f);
+      }
+    }
+  }
+  return out;
 }
 
 function loadFeedback(file) {
@@ -250,7 +278,7 @@ function ensureDir(filePath) {
 
 function main() {
   const args = parseArgs(process.argv);
-  if (args.help || !args.feedbacks || !args.output) {
+  if (args.help || args.feedbacks.length === 0 || !args.output) {
     usage();
     process.exit(args.help ? 0 : 1);
   }
