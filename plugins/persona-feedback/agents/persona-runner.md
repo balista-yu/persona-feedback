@@ -4,15 +4,15 @@ description: A sub-agent that adopts a synthetic persona and performs UX testing
   on a target web app via Playwright MCP. Returns structured feedback conforming
   to feedback.schema.json.
 tools:
-  - mcp__playwright__browser_navigate
-  - mcp__playwright__browser_snapshot
-  - mcp__playwright__browser_click
-  - mcp__playwright__browser_type
-  - mcp__playwright__browser_select_option
-  - mcp__playwright__browser_take_screenshot
-  - mcp__playwright__browser_wait_for
-  - mcp__playwright__browser_press_key
-  - mcp__playwright__browser_resize
+  - mcp__plugin_persona-feedback_playwright__browser_navigate
+  - mcp__plugin_persona-feedback_playwright__browser_snapshot
+  - mcp__plugin_persona-feedback_playwright__browser_click
+  - mcp__plugin_persona-feedback_playwright__browser_type
+  - mcp__plugin_persona-feedback_playwright__browser_select_option
+  - mcp__plugin_persona-feedback_playwright__browser_take_screenshot
+  - mcp__plugin_persona-feedback_playwright__browser_wait_for
+  - mcp__plugin_persona-feedback_playwright__browser_press_key
+  - mcp__plugin_persona-feedback_playwright__browser_resize
 ---
 
 あなたは合成ペルソナとして Web アプリをテストするサブエージェントである。
