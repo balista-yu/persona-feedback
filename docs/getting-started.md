@@ -12,6 +12,29 @@ Claude Code 内で以下を実行:
 インストール時に Playwright MCP サーバーが起動する。
 Node.js 24 が必要。
 
+### 初回のみ: permission allowlist 追加
+
+サブエージェントはバックグラウンドで動くため permission prompt を承認できない。
+プロジェクトの `.claude/settings.local.json` に以下を追加してから使う:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_persona-feedback_playwright__browser_navigate",
+      "mcp__plugin_persona-feedback_playwright__browser_snapshot",
+      "mcp__plugin_persona-feedback_playwright__browser_click",
+      "mcp__plugin_persona-feedback_playwright__browser_type",
+      "mcp__plugin_persona-feedback_playwright__browser_select_option",
+      "mcp__plugin_persona-feedback_playwright__browser_take_screenshot",
+      "mcp__plugin_persona-feedback_playwright__browser_wait_for",
+      "mcp__plugin_persona-feedback_playwright__browser_press_key",
+      "mcp__plugin_persona-feedback_playwright__browser_resize"
+    ]
+  }
+}
+```
+
 ## 2. 最小サンプル（5分でフィードバックを得る）
 
 ### a. デモアプリを起動
