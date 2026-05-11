@@ -80,10 +80,25 @@ screenshots を保存する場合のファイル名プレフィクスは <person
 - タスク完了 or 諦めポイントで終了
 - feedback.schema.json 準拠の JSON を返す
 
-### 4. 集約フェーズ
+### 4. 回収＆永続化フェーズ（責務はメインエージェント）
 
-全サブエージェントの JSON 出力を回収し、`scripts/aggregate.mjs` に渡す。
-スクリプトは以下のカテゴリに分類した統合レポートを返す:
+各 Task 呼び出しの戻り値は persona-runner が返した「最終メッセージ全文」である。
+**メインエージェント（このスキルを実行している側）が以下を行う**:
+
+1. 戻り値文字列から JSON 本体を抽出する
+   - 期待: 純粋な JSON
+   - 現実: コードフェンス（` ```json ... ``` `）で包まれることがある。
+     その場合は最初の `{` から対応する最後の `}` までを切り出す
+2. `feedback.schema.json` で軽くバリデーション（`persona_id` / `outcome` / `findings` の存在確認）
+3. `reports/<timestamp>/raw/<persona_id>.json` として Write tool で保存する
+4. パース失敗 / 必須欠落のペルソナは「失敗ペルソナ」として記録（partial success）
+
+persona-runner 側には **Write 権限を渡さない**。サブエージェントが意図せずホスト側
+ファイルを書き換えるリスクを抑え、責務を「JSON を返すだけ」に閉じる。
+
+### 5. 集約フェーズ
+
+`scripts/aggregate.mjs` に raw ディレクトリを渡して統合レポートを生成する:
 
 - **all-agreement (critical)**: 全員が指摘した問題
 - **segment-specific**: 特定ペルソナだけが詰まった箇所

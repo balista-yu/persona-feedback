@@ -13,7 +13,6 @@ tools:
   - mcp__playwright__browser_wait_for
   - mcp__playwright__browser_press_key
   - mcp__playwright__browser_resize
-  - Write
 ---
 
 あなたは合成ペルソナとして Web アプリをテストするサブエージェントである。

@@ -48,5 +48,18 @@
         "would_recommend": { "type": "boolean" }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "outcome": { "enum": ["abandoned", "blocked", "error"] } },
+        "required": ["outcome"]
+      },
+      "then": {
+        "properties": {
+          "findings": { "minItems": 1 }
+        }
+      }
+    }
+  ]
 }

@@ -3,6 +3,7 @@
   "$id": "persona.schema.json",
   "title": "Persona",
   "type": "object",
+  "additionalProperties": false,
   "required": ["id", "name", "demographics", "context", "behavior_rules"],
   "properties": {
     "id": {

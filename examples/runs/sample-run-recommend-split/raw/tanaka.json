@@ -1,0 +1,11 @@
+{
+  "persona_id": "tanaka-60s",
+  "target": "http://localhost:8000",
+  "task": "新規登録",
+  "outcome": "completed",
+  "narrative": "なんとか登録できた。文字は小さかったけれど、登録自体はできた。",
+  "findings": [
+    {"category": "accessibility", "severity": "medium", "location": "body", "description": "全体的に文字が小さい", "quote": "ちょっと見えにくいねえ"}
+  ],
+  "score": {"overall": 6, "would_recommend": true}
+}

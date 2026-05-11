@@ -39,14 +39,23 @@ function collectFeedbackFiles(feedbacksArg) {
   if (stat && stat.isDirectory()) {
     return readdirSync(p)
       .filter(f => extname(f) === '.json')
+      .sort()
       .map(f => join(p, f));
   }
-  // 簡易glob: ディレクトリ/*.json のみサポート
-  if (feedbacksArg.endsWith('*.json')) {
-    const dir = dirname(p);
-    return readdirSync(dir)
-      .filter(f => extname(f) === '.json')
-      .map(f => join(dir, f));
+  // 簡易 glob: 「ディレクトリ/*.json」だけをサポート。
+  // 前置パターン（例: reports/foo-*.json）は誤動作の温床なのでエラーにする。
+  if (feedbacksArg.includes('*')) {
+    if (feedbacksArg.endsWith('/*.json')) {
+      const dir = dirname(p);
+      return readdirSync(dir)
+        .filter(f => extname(f) === '.json')
+        .sort()
+        .map(f => join(dir, f));
+    }
+    throw new Error(
+      `Unsupported glob pattern: ${feedbacksArg}\n` +
+      `Only "<dir>/*.json" or a plain directory/file path is supported.`
+    );
   }
   if (stat && stat.isFile()) return [p];
   throw new Error(`feedbacks not found: ${feedbacksArg}`);
@@ -103,18 +112,23 @@ function analyze(feedbacks) {
   segmentSpecific.sort((a, b) => b.max_severity_rank - a.max_severity_rank);
 
   // controversial: would_recommend が割れた / overall スコア差 >= 3
-  let controversial = null;
   const scores = feedbacks
     .map(f => (f.score && typeof f.score.overall === 'number') ? f.score.overall : null)
     .filter(v => v !== null);
-  if (scores.length >= 2) {
-    const min = Math.min(...scores);
-    const max = Math.max(...scores);
-    if (max - min >= 3) controversial = { score_gap: { min, max }, feedbacks };
-  }
+  const scoreGap = (scores.length >= 2 && (Math.max(...scores) - Math.min(...scores) >= 3))
+    ? { min: Math.min(...scores), max: Math.max(...scores) }
+    : null;
+
   const recos = feedbacks.map(f => f.score?.would_recommend).filter(v => v !== undefined);
   const splitReco = recos.length >= 2 && new Set(recos).size > 1;
-  if (splitReco) controversial = { ...(controversial || {}), recommend_split: true, feedbacks };
+
+  const controversial = (scoreGap || splitReco)
+    ? {
+        ...(scoreGap ? { score_gap: scoreGap } : {}),
+        ...(splitReco ? { recommend_split: true } : {}),
+        feedbacks
+      }
+    : null;
 
   // outcome の集計
   const outcomeCounts = feedbacks.reduce((acc, f) => {

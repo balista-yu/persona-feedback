@@ -22,7 +22,7 @@ jobs:
       - name: Validate persona/feedback schemas
         run: npm run validate
 
-      - name: Aggregate sample run (smoke)
+      - name: Aggregate sample run (smoke - score_gap path)
         run: |
           node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
             --feedbacks examples/runs/sample-run/raw \
@@ -30,7 +30,15 @@ jobs:
             --format both
           test -s /tmp/smoke-report.md
           test -s /tmp/smoke-report.json
-          echo "smoke report ok"
+          grep -q "overall スコア差" /tmp/smoke-report.md
+
+      - name: Aggregate sample run (smoke - recommend_split path)
+        run: |
+          node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
+            --feedbacks examples/runs/sample-run-recommend-split/raw \
+            --output /tmp/smoke-split.md \
+            --format markdown
+          grep -q "would_recommend がペルソナ間で割れた" /tmp/smoke-split.md
 
       - name: Validate plugin manifests (JSON syntax)
         run: |

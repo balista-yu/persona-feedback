@@ -34,10 +34,11 @@ evaluation_focus:
 
 vocabulary:
   tone: cautious
+  # 60代でも「ログイン」自体は日常で経験している前提。
+  # ここに入れるのは「初耳に近いカタカナ専門語」だけに絞る。
   avoid_terms:
     - "アップロード"
     - "認証"
     - "トークン"
     - "OAuth"
     - "API"
-    - "ログイン"

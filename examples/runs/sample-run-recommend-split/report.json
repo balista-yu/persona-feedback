@@ -1,0 +1,150 @@
+{
+  "generated_at": "2026-05-11T05:19:04.739Z",
+  "target": "http://localhost:8000",
+  "task": "新規登録",
+  "personas": [
+    "dev-engineer",
+    "tanaka-60s"
+  ],
+  "outcome_counts": {
+    "completed": 2
+  },
+  "all_agreement": [
+    {
+      "key": "accessibility::body",
+      "items": [
+        {
+          "persona_id": "dev-engineer",
+          "category": "accessibility",
+          "severity": "medium",
+          "location": "body",
+          "description": "全体的に文字が小さい"
+        },
+        {
+          "persona_id": "tanaka-60s",
+          "category": "accessibility",
+          "severity": "medium",
+          "location": "body",
+          "description": "全体的に文字が小さい",
+          "quote": "ちょっと見えにくいねえ"
+        }
+      ],
+      "max_severity_rank": 2
+    }
+  ],
+  "segment_specific": [
+    {
+      "key": "trust::signup-form",
+      "items": [
+        {
+          "persona_id": "dev-engineer",
+          "category": "trust",
+          "severity": "high",
+          "location": "signup-form",
+          "description": "クレカ要求が過剰",
+          "suggestion": "後段で取得"
+        }
+      ],
+      "max_severity_rank": 3
+    }
+  ],
+  "controversial": {
+    "recommend_split": true,
+    "feedbacks": [
+      {
+        "persona_id": "dev-engineer",
+        "target": "http://localhost:8000",
+        "task": "新規登録",
+        "outcome": "completed",
+        "narrative": "登録自体は機能したが、クレカ要求は過剰。プライバシーポリシーも読みづらい。業務利用は推奨できない。",
+        "findings": [
+          {
+            "category": "trust",
+            "severity": "high",
+            "location": "signup-form",
+            "description": "クレカ要求が過剰",
+            "suggestion": "後段で取得"
+          },
+          {
+            "category": "accessibility",
+            "severity": "medium",
+            "location": "body",
+            "description": "全体的に文字が小さい"
+          }
+        ],
+        "score": {
+          "overall": 5,
+          "would_recommend": false
+        }
+      },
+      {
+        "persona_id": "tanaka-60s",
+        "target": "http://localhost:8000",
+        "task": "新規登録",
+        "outcome": "completed",
+        "narrative": "なんとか登録できた。文字は小さかったけれど、登録自体はできた。",
+        "findings": [
+          {
+            "category": "accessibility",
+            "severity": "medium",
+            "location": "body",
+            "description": "全体的に文字が小さい",
+            "quote": "ちょっと見えにくいねえ"
+          }
+        ],
+        "score": {
+          "overall": 6,
+          "would_recommend": true
+        }
+      }
+    ]
+  },
+  "raw_feedbacks": [
+    {
+      "persona_id": "dev-engineer",
+      "target": "http://localhost:8000",
+      "task": "新規登録",
+      "outcome": "completed",
+      "narrative": "登録自体は機能したが、クレカ要求は過剰。プライバシーポリシーも読みづらい。業務利用は推奨できない。",
+      "findings": [
+        {
+          "category": "trust",
+          "severity": "high",
+          "location": "signup-form",
+          "description": "クレカ要求が過剰",
+          "suggestion": "後段で取得"
+        },
+        {
+          "category": "accessibility",
+          "severity": "medium",
+          "location": "body",
+          "description": "全体的に文字が小さい"
+        }
+      ],
+      "score": {
+        "overall": 5,
+        "would_recommend": false
+      }
+    },
+    {
+      "persona_id": "tanaka-60s",
+      "target": "http://localhost:8000",
+      "task": "新規登録",
+      "outcome": "completed",
+      "narrative": "なんとか登録できた。文字は小さかったけれど、登録自体はできた。",
+      "findings": [
+        {
+          "category": "accessibility",
+          "severity": "medium",
+          "location": "body",
+          "description": "全体的に文字が小さい",
+          "quote": "ちょっと見えにくいねえ"
+        }
+      ],
+      "score": {
+        "overall": 6,
+        "would_recommend": true
+      }
+    }
+  ]
+}
