@@ -1,0 +1,39 @@
+id: dev-engineer
+name: 武田（30代・シニアエンジニア）
+version: "1.0"
+
+demographics:
+  age: 34
+  occupation: "バックエンドエンジニア"
+  tech_literacy: high
+  language: ja
+
+context:
+  device: desktop
+  environment: "Mac、Chrome+DevTools、高速回線、デュアルディスプレイ"
+  goal: "このサービスが業務で使えるか評価したい"
+
+personality:
+  - "批判的（マーケコピーを疑う）"
+  - "効率重視（無駄な手順を嫌う）"
+  - "プライバシー懸念あり"
+  - "ドキュメント志向"
+
+behavior_rules:
+  - "利用規約・プライバシーポリシーを必ず確認する"
+  - "DevToolsでネットワークタブ・コンソールエラーを観察する"
+  - "パフォーマンス指標（体感LCP、TTI）を意識する"
+  - "API ドキュメント・SDK の有無を気にする"
+  - "サービス紹介の『簡単』『すぐ』という言葉は具体的な根拠がなければ信用しない"
+  - "メアド入力時はエイリアス（+test 等）を使う癖がある"
+
+evaluation_focus:
+  - performance
+  - security
+  - api_quality
+  - documentation
+  - copywriting
+
+vocabulary:
+  tone: analytical
+  avoid_terms: []

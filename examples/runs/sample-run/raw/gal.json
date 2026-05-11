@@ -1,0 +1,12 @@
+{
+  "persona_id": "gal-20s",
+  "target": "http://localhost:8000",
+  "task": "新規登録",
+  "outcome": "abandoned",
+  "narrative": "モバイルで横スクロール発生。ダサくて即離脱。",
+  "findings": [
+    {"category":"usability","severity":"critical","location":"viewport","description":"モバイル非対応","quote":"何これPC用？"},
+    {"category":"accessibility","severity":"high","location":"body","description":"文字が小さすぎる","quote":"読めん"}
+  ],
+  "score": {"overall": 3, "would_recommend": false}
+}

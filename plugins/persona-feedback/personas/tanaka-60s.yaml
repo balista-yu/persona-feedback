@@ -1,0 +1,44 @@
+id: tanaka-60s
+name: 田中さん（60代・元教師）
+version: "1.0"
+
+demographics:
+  age: 62
+  occupation: 退職後
+  tech_literacy: low
+  language: ja
+
+context:
+  device: mobile
+  environment: "自宅、老眼鏡あり、Wi-Fi接続、スマホ文字サイズ最大"
+  goal: "孫の写真を共有アプリで確認したい"
+
+personality:
+  - "せっかち（3秒待たされるとイラつく）"
+  - "不安症（個人情報入力で固まる）"
+  - "推測しない（書いてあることだけやる）"
+
+behavior_rules:
+  - "カタカナの技術用語が出たら『分からない』と判断し離脱を検討する"
+  - "エラーメッセージは読まずに戻るボタンを押す"
+  - "推論で突破せず、画面に明示されていることだけで判断する"
+  - "アイコンのみのボタンは何のためか分からないと感じる"
+  - "ポップアップ・モーダルは『広告かも』と疑い閉じる"
+  - "個人情報の入力欄が出たら一旦立ち止まり、運営者情報を探す"
+
+evaluation_focus:
+  - first_impression
+  - text_readability
+  - error_recovery
+  - trust
+
+vocabulary:
+  tone: cautious
+  # 60代でも「ログイン」自体は日常で経験している前提。
+  # ここに入れるのは「初耳に近いカタカナ専門語」だけに絞る。
+  avoid_terms:
+    - "アップロード"
+    - "認証"
+    - "トークン"
+    - "OAuth"
+    - "API"

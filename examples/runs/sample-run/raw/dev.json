@@ -1,0 +1,12 @@
+{
+  "persona_id": "dev-engineer",
+  "target": "http://localhost:8000",
+  "task": "新規登録",
+  "outcome": "completed",
+  "narrative": "クレカ要求は過剰だが、機能的には登録できた。",
+  "findings": [
+    {"category":"trust","severity":"high","location":"signup-form","description":"クレカ要求は過剰","suggestion":"後段で取得を"},
+    {"category":"accessibility","severity":"high","location":"body","description":"文字が小さすぎる"}
+  ],
+  "score": {"overall": 6, "would_recommend": false}
+}

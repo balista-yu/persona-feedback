@@ -1,0 +1,262 @@
+{
+  "generated_at": "2026-05-11T04:33:33.561Z",
+  "target": "http://localhost:8000",
+  "task": "新規登録",
+  "personas": [
+    "dev-engineer",
+    "gal-20s",
+    "tanaka-60s"
+  ],
+  "outcome_counts": {
+    "completed": 1,
+    "abandoned": 2
+  },
+  "all_agreement": [
+    {
+      "key": "accessibility::body",
+      "items": [
+        {
+          "persona_id": "dev-engineer",
+          "category": "accessibility",
+          "severity": "high",
+          "location": "body",
+          "description": "文字が小さすぎる"
+        },
+        {
+          "persona_id": "gal-20s",
+          "category": "accessibility",
+          "severity": "high",
+          "location": "body",
+          "description": "文字が小さすぎる",
+          "quote": "読めん"
+        },
+        {
+          "persona_id": "tanaka-60s",
+          "category": "accessibility",
+          "severity": "high",
+          "location": "body",
+          "description": "文字が小さすぎる",
+          "quote": "見えない"
+        }
+      ],
+      "max_severity_rank": 3
+    }
+  ],
+  "segment_specific": [
+    {
+      "key": "usability::viewport",
+      "items": [
+        {
+          "persona_id": "gal-20s",
+          "category": "usability",
+          "severity": "critical",
+          "location": "viewport",
+          "description": "モバイル非対応",
+          "quote": "何これPC用？"
+        }
+      ],
+      "max_severity_rank": 4
+    },
+    {
+      "key": "copywriting::hero",
+      "items": [
+        {
+          "persona_id": "tanaka-60s",
+          "category": "copywriting",
+          "severity": "critical",
+          "location": "hero",
+          "description": "カタカナ用語が多すぎる",
+          "quote": "OAuthって何？",
+          "suggestion": "日本語で書いて"
+        }
+      ],
+      "max_severity_rank": 4
+    },
+    {
+      "key": "trust::signup-form",
+      "items": [
+        {
+          "persona_id": "dev-engineer",
+          "category": "trust",
+          "severity": "high",
+          "location": "signup-form",
+          "description": "クレカ要求は過剰",
+          "suggestion": "後段で取得を"
+        }
+      ],
+      "max_severity_rank": 3
+    }
+  ],
+  "controversial": {
+    "score_gap": {
+      "min": 2,
+      "max": 6
+    },
+    "feedbacks": [
+      {
+        "persona_id": "dev-engineer",
+        "target": "http://localhost:8000",
+        "task": "新規登録",
+        "outcome": "completed",
+        "narrative": "クレカ要求は過剰だが、機能的には登録できた。",
+        "findings": [
+          {
+            "category": "trust",
+            "severity": "high",
+            "location": "signup-form",
+            "description": "クレカ要求は過剰",
+            "suggestion": "後段で取得を"
+          },
+          {
+            "category": "accessibility",
+            "severity": "high",
+            "location": "body",
+            "description": "文字が小さすぎる"
+          }
+        ],
+        "score": {
+          "overall": 6,
+          "would_recommend": false
+        }
+      },
+      {
+        "persona_id": "gal-20s",
+        "target": "http://localhost:8000",
+        "task": "新規登録",
+        "outcome": "abandoned",
+        "narrative": "モバイルで横スクロール発生。ダサくて即離脱。",
+        "findings": [
+          {
+            "category": "usability",
+            "severity": "critical",
+            "location": "viewport",
+            "description": "モバイル非対応",
+            "quote": "何これPC用？"
+          },
+          {
+            "category": "accessibility",
+            "severity": "high",
+            "location": "body",
+            "description": "文字が小さすぎる",
+            "quote": "読めん"
+          }
+        ],
+        "score": {
+          "overall": 3,
+          "would_recommend": false
+        }
+      },
+      {
+        "persona_id": "tanaka-60s",
+        "target": "http://localhost:8000",
+        "task": "新規登録",
+        "outcome": "abandoned",
+        "narrative": "アップロードという言葉が分からない。怖くなって閉じた。",
+        "findings": [
+          {
+            "category": "copywriting",
+            "severity": "critical",
+            "location": "hero",
+            "description": "カタカナ用語が多すぎる",
+            "quote": "OAuthって何？",
+            "suggestion": "日本語で書いて"
+          },
+          {
+            "category": "accessibility",
+            "severity": "high",
+            "location": "body",
+            "description": "文字が小さすぎる",
+            "quote": "見えない"
+          }
+        ],
+        "score": {
+          "overall": 2,
+          "would_recommend": false
+        }
+      }
+    ]
+  },
+  "raw_feedbacks": [
+    {
+      "persona_id": "dev-engineer",
+      "target": "http://localhost:8000",
+      "task": "新規登録",
+      "outcome": "completed",
+      "narrative": "クレカ要求は過剰だが、機能的には登録できた。",
+      "findings": [
+        {
+          "category": "trust",
+          "severity": "high",
+          "location": "signup-form",
+          "description": "クレカ要求は過剰",
+          "suggestion": "後段で取得を"
+        },
+        {
+          "category": "accessibility",
+          "severity": "high",
+          "location": "body",
+          "description": "文字が小さすぎる"
+        }
+      ],
+      "score": {
+        "overall": 6,
+        "would_recommend": false
+      }
+    },
+    {
+      "persona_id": "gal-20s",
+      "target": "http://localhost:8000",
+      "task": "新規登録",
+      "outcome": "abandoned",
+      "narrative": "モバイルで横スクロール発生。ダサくて即離脱。",
+      "findings": [
+        {
+          "category": "usability",
+          "severity": "critical",
+          "location": "viewport",
+          "description": "モバイル非対応",
+          "quote": "何これPC用？"
+        },
+        {
+          "category": "accessibility",
+          "severity": "high",
+          "location": "body",
+          "description": "文字が小さすぎる",
+          "quote": "読めん"
+        }
+      ],
+      "score": {
+        "overall": 3,
+        "would_recommend": false
+      }
+    },
+    {
+      "persona_id": "tanaka-60s",
+      "target": "http://localhost:8000",
+      "task": "新規登録",
+      "outcome": "abandoned",
+      "narrative": "アップロードという言葉が分からない。怖くなって閉じた。",
+      "findings": [
+        {
+          "category": "copywriting",
+          "severity": "critical",
+          "location": "hero",
+          "description": "カタカナ用語が多すぎる",
+          "quote": "OAuthって何？",
+          "suggestion": "日本語で書いて"
+        },
+        {
+          "category": "accessibility",
+          "severity": "high",
+          "location": "body",
+          "description": "文字が小さすぎる",
+          "quote": "見えない"
+        }
+      ],
+      "score": {
+        "overall": 2,
+        "would_recommend": false
+      }
+    }
+  ]
+}

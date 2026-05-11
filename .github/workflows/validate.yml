@@ -1,0 +1,47 @@
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+
+      - name: Validate persona/feedback schemas
+        run: npm run validate
+
+      - name: Aggregate sample run (smoke - score_gap path)
+        run: |
+          node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
+            --feedbacks examples/runs/sample-run/raw \
+            --output /tmp/smoke-report.md \
+            --format both
+          test -s /tmp/smoke-report.md
+          test -s /tmp/smoke-report.json
+          grep -q "overall スコア差" /tmp/smoke-report.md
+
+      - name: Aggregate sample run (smoke - recommend_split path)
+        run: |
+          node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
+            --feedbacks examples/runs/sample-run-recommend-split/raw \
+            --output /tmp/smoke-split.md \
+            --format markdown
+          grep -q "would_recommend がペルソナ間で割れた" /tmp/smoke-split.md
+
+      - name: Validate plugin manifests (JSON syntax)
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/marketplace.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('plugins/persona-feedback/.claude-plugin/plugin.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('plugins/persona-feedback/.mcp.json','utf8'))"
