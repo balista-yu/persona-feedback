@@ -28,7 +28,28 @@ description: Use when the user wants to test a web app with synthetic personas.
   - `severity_threshold`: `low` | `medium` | `high` | `critical`（既定: `low` — 全て報告）
   - `output_format`: `markdown` | `json` | `both`（既定: `both`）
 - **parallel** (任意): boolean（既定: `true`）
-- **max_parallel** (任意): 整数（既定: `5`）
+- **max_parallel** (任意): 整数（既定: `3`。後述のコスト目安に従う）
+
+## コスト目安
+
+実測値（Opus 4.7 + Playwright MCP + 中規模 Next.js サインアップフロー）:
+
+| 指標 | ペルソナ1体あたり |
+|---|---|
+| トークン消費 | 約 40k〜60k tokens |
+| 実時間 | 2〜4 分 |
+| MCP ツール呼び出し | 30〜50 回 |
+
+スコープが広い（探索的なタスク・複数画面遷移）と倍に振れることがある。
+3 ペルソナ並列 ≈ 130k+ tokens / 4 分強 が一つの目安。
+
+`max_parallel` の既定を 3 にしている理由はここ。4 体以上を要求された場合、
+**メインエージェントは見積もりトークン数と所要時間をユーザーに提示してから**
+起動する。具体的には:
+
+> 4 ペルソナ並列で実行します。概算 ~200k tokens、5 分前後。続行しますか？
+
+を起動前に出す。承認なしには走らせない。
 
 ## 実行フロー
 
