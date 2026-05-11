@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "persona-feedback",
+  "version": "0.1.0",
+  "description": "Synthetic users as sub-agents for fast UX feedback loops",
+  "owner": {
+    "name": "balista-yu",
+    "url": "https://github.com/balista-yu"
+  },
+  "homepage": "https://github.com/balista-yu/persona-feedback",
+  "license": "MIT",
+  "plugins": [
+    {
+      "name": "persona-feedback",
+      "description": "Run synthetic personas against your web app via Playwright MCP",
+      "source": "./plugins/persona-feedback",
+      "category": "testing",
+      "keywords": ["ux", "testing", "persona", "playwright", "feedback"]
+    }
+  ]
+}

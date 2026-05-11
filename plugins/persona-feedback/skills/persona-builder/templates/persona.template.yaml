@@ -1,0 +1,39 @@
+# persona.template.yaml
+# このテンプレートを雛形として、personas/<id>.yaml を生成する。
+# <...> は実値で置換すること。スキーマは
+# skills/persona-tester/schemas/persona.schema.json を参照。
+
+id: <kebab-case-id>
+name: <表示名（日本語可）>
+version: "1.0"
+
+demographics:
+  age: <number>
+  occupation: <string>
+  tech_literacy: <low | medium | high>
+  language: ja
+
+context:
+  device: <desktop | mobile | tablet>
+  environment: <短い記述。例: "通勤電車、片手操作、4G">
+  goal: <ユーザーが達成したいこと>
+
+personality:
+  - <性格特性1>
+  - <性格特性2>
+  - <性格特性3>
+
+# CRITICAL: LLMの「賢すぎ問題」を抑制する明示ルール。最低1つ、できれば3つ以上。
+behavior_rules:
+  - <例: "専門用語が出たら推論せず『分からない』と判断">
+  - <例: "エラーメッセージは読まず戻るボタンを優先">
+  - <例: "3秒以上の待機で離脱を検討">
+
+evaluation_focus:
+  - first_impression
+  - text_readability
+  - error_recovery
+
+vocabulary:
+  tone: <casual | formal | grumpy | enthusiastic | cautious | analytical>
+  avoid_terms: []  # 使わない（または知らない）技術用語

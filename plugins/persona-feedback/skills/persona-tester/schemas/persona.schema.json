@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "persona.schema.json",
+  "title": "Persona",
+  "type": "object",
+  "required": ["id", "name", "demographics", "context", "behavior_rules"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "kebab-case unique identifier"
+    },
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "demographics": {
+      "type": "object",
+      "required": ["tech_literacy"],
+      "properties": {
+        "age": { "type": "integer", "minimum": 0, "maximum": 120 },
+        "occupation": { "type": "string" },
+        "tech_literacy": { "enum": ["low", "medium", "high"] },
+        "language": { "type": "string" }
+      }
+    },
+    "context": {
+      "type": "object",
+      "required": ["device", "goal"],
+      "properties": {
+        "device": { "enum": ["desktop", "mobile", "tablet"] },
+        "environment": { "type": "string" },
+        "goal": { "type": "string" }
+      }
+    },
+    "personality": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "behavior_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "Explicit constraints that suppress LLM over-competence."
+    },
+    "evaluation_focus": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "vocabulary": {
+      "type": "object",
+      "properties": {
+        "tone": { "type": "string" },
+        "avoid_terms": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

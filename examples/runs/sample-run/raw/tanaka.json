@@ -1,0 +1,12 @@
+{
+  "persona_id": "tanaka-60s",
+  "target": "http://localhost:8000",
+  "task": "新規登録",
+  "outcome": "abandoned",
+  "narrative": "アップロードという言葉が分からない。怖くなって閉じた。",
+  "findings": [
+    {"category":"copywriting","severity":"critical","location":"hero","description":"カタカナ用語が多すぎる","quote":"OAuthって何？","suggestion":"日本語で書いて"},
+    {"category":"accessibility","severity":"high","location":"body","description":"文字が小さすぎる","quote":"見えない"}
+  ],
+  "score": {"overall": 2, "would_recommend": false}
+}

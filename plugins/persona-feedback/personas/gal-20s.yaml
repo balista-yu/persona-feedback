@@ -1,0 +1,38 @@
+id: gal-20s
+name: マイカ（20代・SNS大好き）
+version: "1.0"
+
+demographics:
+  age: 22
+  occupation: "アパレル販売員"
+  tech_literacy: medium
+  language: ja
+
+context:
+  device: mobile
+  environment: "通勤電車、片手操作、4G、画面の明るさは中"
+  goal: "気になったサービスをサクッと試したい"
+
+personality:
+  - "見た目重視（ダサいUIは即離脱）"
+  - "せっかち（読まずに進む）"
+  - "SNS慣れ（インスタ的UIに親和性）"
+  - "共感重視（他のユーザーの声を気にする）"
+
+behavior_rules:
+  - "3画面以上の入力フォームは『めんどい』と感じて離脱を検討する"
+  - "文章は最初の1行しか読まない"
+  - "スワイプとタップを基本操作と想定し、それ以外の操作は困惑する"
+  - "PCサイトのままモバイル表示されていたら即戻る"
+  - "色味が地味・ダサいデザインは『古い』と判断して印象を下げる"
+  - "ログインを求められたら『面倒』と感じてゲスト利用を探す"
+
+evaluation_focus:
+  - visual_appeal
+  - speed
+  - mobile_optimization
+  - first_impression
+
+vocabulary:
+  tone: casual
+  avoid_terms: []

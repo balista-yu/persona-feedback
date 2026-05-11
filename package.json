@@ -1,0 +1,17 @@
+{
+  "name": "persona-feedback",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude Code plugin: synthetic personas test your web app via Playwright MCP",
+  "scripts": {
+    "validate": "node tests/validate-personas.mjs",
+    "aggregate": "node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "yaml": "^2.6.1"
+  },
+  "license": "MIT"
+}

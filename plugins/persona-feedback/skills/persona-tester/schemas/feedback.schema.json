@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "feedback.schema.json",
+  "title": "Persona feedback report",
+  "type": "object",
+  "required": ["persona_id", "target", "task", "outcome", "findings"],
+  "properties": {
+    "persona_id": { "type": "string" },
+    "target": { "type": "string", "format": "uri" },
+    "task": { "type": "string" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "duration_seconds": { "type": "number", "minimum": 0 },
+    "outcome": {
+      "enum": ["completed", "abandoned", "blocked", "error"]
+    },
+    "narrative": {
+      "type": "string",
+      "description": "ペルソナ視点での一人称ナレーション"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "severity", "description"],
+        "properties": {
+          "category": {
+            "enum": ["usability", "bug", "accessibility", "copywriting", "performance", "trust"]
+          },
+          "severity": { "enum": ["low", "medium", "high", "critical"] },
+          "location": {
+            "type": "string",
+            "description": "URL or DOM selector / region"
+          },
+          "description": { "type": "string" },
+          "quote": {
+            "type": "string",
+            "description": "ペルソナの生の声（一人称）"
+          },
+          "screenshot": { "type": "string" },
+          "suggestion": { "type": "string" }
+        }
+      }
+    },
+    "score": {
+      "type": "object",
+      "properties": {
+        "overall": { "type": "number", "minimum": 0, "maximum": 10 },
+        "would_recommend": { "type": "boolean" }
+      }
+    }
+  }
+}

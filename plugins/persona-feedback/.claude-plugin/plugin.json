@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "persona-feedback",
+  "version": "0.1.0",
+  "description": "Synthetic personas test your web app and return structured feedback",
+  "author": {
+    "name": "balista-yu"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/balista-yu/persona-feedback"
+}

@@ -5,3 +5,12 @@
 
 # testing
 .devcontainer
+
+# persona-feedback runtime outputs
+/reports/
+node_modules/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
