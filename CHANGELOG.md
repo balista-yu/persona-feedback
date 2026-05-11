@@ -7,10 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.1] - 2026-05-12
-
-実運用フィードバック (issue #5) 反映 + 0.1.0 リリース版に残っていた
-MCP ツール名バグの修正を marketplace に届けるためのパッチリリース。
+実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
+MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
 ### Fixed
 - **MCP ツール名**: プラグイン経由公開時の名前空間
@@ -68,6 +66,5 @@ MCP ツール名バグの修正を marketplace に届けるためのパッチリ
 - GitHub Actions: スキーマ検証 (`validate.yml`) とタグリリース (`release.yml`)。
 - ドキュメント: `getting-started`, `persona-spec`, `feedback-spec`, `architecture`。
 
-[Unreleased]: https://github.com/balista-yu/persona-feedback/compare/v0.1.1...HEAD
-[0.1.1]: https://github.com/balista-yu/persona-feedback/compare/v0.1.0...v0.1.1
+[Unreleased]: https://github.com/balista-yu/persona-feedback/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/balista-yu/persona-feedback/releases/tag/v0.1.0
