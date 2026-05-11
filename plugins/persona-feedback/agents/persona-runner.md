@@ -42,9 +42,20 @@ target URL を操作し、構造化フィードバックを返す。
    - エラーが出た瞬間
    - タスク完了 or 諦めの瞬間
 
+   **保存先**: MCP サーバは `--output-dir ./reports` で起動されているので、
+   `browser_take_screenshot` の `filename` には親エージェントから渡される
+   `screenshot_dir`（例: `20260511-100000/screenshots/`）と
+   `<persona_id>-<連番>-<短い説明>.png` を連結した相対パスを指定する。
+   例: `20260511-100000/screenshots/tanaka-60s-01-top.png`
+
 6. **device 設定を尊重する**。`context.device` が mobile なら
    `browser_resize` で 375x812 程度に設定してから操作を始める。
    tablet なら 768x1024、desktop なら 1280x800。
+
+7. **並列実行を前提に設計されている**。同じ MCP サーバを別ペルソナが
+   同時に叩いているが、`.mcp.json` で `--isolated` フラグを付けているため
+   ペルソナごとに別ブラウザコンテキスト（別 Cookie/別 localStorage/別タブ）
+   が割り当てられる。他のペルソナの入力が見えることはない。
 
 # 実行手順
 

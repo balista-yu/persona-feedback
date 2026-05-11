@@ -1,0 +1,141 @@
+{
+  "generated_at": "2026-05-11T23:22:49.505Z",
+  "target": "http://localhost:3000/signup",
+  "task": "t",
+  "personas": [
+    "dev-engineer",
+    "gal-20s",
+    "tanaka-60s"
+  ],
+  "outcome_counts": {
+    "abandoned": 3
+  },
+  "all_agreement": [
+    {
+      "key": "trust::*location-varied*",
+      "items": [
+        {
+          "persona_id": "dev-engineer",
+          "category": "trust",
+          "severity": "critical",
+          "location": "signup form email field",
+          "description": "input が他人のに化ける"
+        },
+        {
+          "persona_id": "gal-20s",
+          "category": "trust",
+          "severity": "high",
+          "location": "email input",
+          "description": "勝手に入力が変わる"
+        },
+        {
+          "persona_id": "tanaka-60s",
+          "category": "trust",
+          "severity": "critical",
+          "location": "メアド入力欄",
+          "description": "他人のメアドに書き換わる"
+        }
+      ],
+      "max_severity_rank": 4,
+      "source": "category-only"
+    }
+  ],
+  "segment_specific": [
+    {
+      "key": "trust::signupformemailfield",
+      "items": [
+        {
+          "persona_id": "dev-engineer",
+          "category": "trust",
+          "severity": "critical",
+          "location": "signup form email field",
+          "description": "input が他人のに化ける"
+        }
+      ],
+      "max_severity_rank": 4
+    },
+    {
+      "key": "trust::メアド入力欄",
+      "items": [
+        {
+          "persona_id": "tanaka-60s",
+          "category": "trust",
+          "severity": "critical",
+          "location": "メアド入力欄",
+          "description": "他人のメアドに書き換わる"
+        }
+      ],
+      "max_severity_rank": 4
+    },
+    {
+      "key": "trust::emailinput",
+      "items": [
+        {
+          "persona_id": "gal-20s",
+          "category": "trust",
+          "severity": "high",
+          "location": "email input",
+          "description": "勝手に入力が変わる"
+        }
+      ],
+      "max_severity_rank": 3
+    }
+  ],
+  "controversial": null,
+  "raw_feedbacks": [
+    {
+      "persona_id": "dev-engineer",
+      "target": "http://localhost:3000/signup",
+      "task": "t",
+      "outcome": "abandoned",
+      "findings": [
+        {
+          "category": "trust",
+          "severity": "critical",
+          "location": "signup form email field",
+          "description": "input が他人のに化ける"
+        }
+      ],
+      "score": {
+        "overall": 2,
+        "would_recommend": false
+      }
+    },
+    {
+      "persona_id": "gal-20s",
+      "target": "http://localhost:3000/signup",
+      "task": "t",
+      "outcome": "abandoned",
+      "findings": [
+        {
+          "category": "trust",
+          "severity": "high",
+          "location": "email input",
+          "description": "勝手に入力が変わる"
+        }
+      ],
+      "score": {
+        "overall": 3,
+        "would_recommend": false
+      }
+    },
+    {
+      "persona_id": "tanaka-60s",
+      "target": "http://localhost:3000/signup",
+      "task": "t",
+      "outcome": "abandoned",
+      "findings": [
+        {
+          "category": "trust",
+          "severity": "critical",
+          "location": "メアド入力欄",
+          "description": "他人のメアドに書き換わる"
+        }
+      ],
+      "score": {
+        "overall": 2,
+        "would_recommend": false
+      }
+    }
+  ]
+}

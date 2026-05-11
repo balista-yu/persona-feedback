@@ -59,6 +59,7 @@ console.log('## Feedback samples');
 const sampleDirs = [
   'examples/runs/sample-run/raw',
   'examples/runs/sample-run-recommend-split/raw',
+  'examples/runs/sample-run-location-varied/raw',
 ];
 for (const rel of sampleDirs) {
   const dir = join(ROOT, rel);

@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
+MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
+
+### Fixed
+- **MCP ツール名**: プラグイン経由公開時の名前空間
+  `mcp__plugin_persona-feedback_playwright__*` に persona-runner の
+  `tools:` を一致させた。これまでブラウザツールが一切見えず
+  3 ペルソナとも `outcome: blocked` で終わっていた問題を解消 (#4)。
+- **並列実行でのブラウザ共有**: `.mcp.json` に `--isolated` を追加し、
+  ペルソナごとに別ブラウザコンテキストを割り当て。「他人の入力が
+  自分のフォームに見える」偽陽性 critical が発生しなくなった (#5 P0-1)。
+- **スクリーンショット保存先**: `--output-dir ./reports` で MCP が
+  直接 reports 配下に書くようにし、親エージェントが `<timestamp>/screenshots/`
+  プレフィクスを inject する仕組みを SKILL.md / persona-runner.md に明記
+  (#5 P1-6)。
+- **aggregate.mjs の引数**: `--feedbacks` を複数パス受付（可変長）に拡張。
+  自然な空白区切り渡しで最初の1つしか拾えない問題を解消 (#5 P1-3)。
+- **all-agreement 検出**: location 表現がペルソナ間で揺れても
+  `category + severity ≥ high` で全員一致を救う secondary 経路を追加。
+  「全員が同じ critical を指摘しても segment-specific に散らばる」
+  問題を解消 (#5 P1-4)。
+- **/skill 記法廃止**: 自然言語呼び出しに統一 (#3)。
+- **`/plugin marketplace add` 記法**: `github:owner/repo` → `owner/repo`
+  に修正 (#2)。
+
+### Added
+- **`scripts/save-raw.mjs`**: persona-runner の戻り値から JSON 抽出 →
+  軽バリ → `reports/<ts>/raw/<persona_id>.json` 保存を1コマンドで
+  まとめて行うユーティリティ。SKILL.md の「回収＆永続化フェーズ」を
+  このスクリプト呼び出しに簡素化 (#5 P1-5)。
+- **コスト目安テーブル**を SKILL.md に追加。`max_parallel` 既定値を
+  5 → 3 に下げ、4 体以上は起動前にユーザー確認を取る仕様に (#5 P2-7)。
+- **MCP permission allowlist セットアップ手順** を README と
+  getting-started に追加。サブエージェントが background なので
+  permission prompt を承認できない問題への対処 (#5 P0-2)。
+- 検証用サンプル `examples/runs/sample-run-location-varied/` を追加し、
+  category-only 経路を CI でも smoke 検証。
+
+### Changed
+- `.mcp.json` の Playwright MCP 起動引数に `--isolated` と
+  `--output-dir ./reports` を追加。
+- `agents/persona-runner.md` の screenshot 保存規約を明文化。
+- `tests/validate-personas.mjs` が新サンプルも検証対象に。
+
 ## [0.1.0] - 2026-05-11
 
 ### Added

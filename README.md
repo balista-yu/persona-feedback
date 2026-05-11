@@ -23,6 +23,33 @@ Claude Code 内で:
 /plugin install persona-feedback@persona-feedback
 ```
 
+### MCP ツールの permission 設定（初回必須）
+
+サブエージェントはバックグラウンド実行されるため対話的な permission prompt を承認できない。
+インストール後、プロジェクトの `.claude/settings.local.json` に以下を追加してください
+（ファイルが無ければ新規作成）:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_persona-feedback_playwright__browser_navigate",
+      "mcp__plugin_persona-feedback_playwright__browser_snapshot",
+      "mcp__plugin_persona-feedback_playwright__browser_click",
+      "mcp__plugin_persona-feedback_playwright__browser_type",
+      "mcp__plugin_persona-feedback_playwright__browser_select_option",
+      "mcp__plugin_persona-feedback_playwright__browser_take_screenshot",
+      "mcp__plugin_persona-feedback_playwright__browser_wait_for",
+      "mcp__plugin_persona-feedback_playwright__browser_press_key",
+      "mcp__plugin_persona-feedback_playwright__browser_resize"
+    ]
+  }
+}
+```
+
+これを忘れるとサブエージェントが MCP ツール呼び出しで `permission denied` 扱いになり
+`outcome: blocked` で終了する。
+
 ## 使い方
 
 スキルは **自然言語で頼むと Claude が自動で起動** する（SKILL.md の `description` がトリガー）。
@@ -56,7 +83,7 @@ tanaka-60s, gal-20s, dev-engineer の3人で、
 ## 注意
 
 - ペルソナは実ブラウザで本当に操作する。本番環境や個人情報を含む環境には気軽に走らせない。
-- 並列ペルソナ数 × LLM コスト × Playwright セッションが発生する。3〜5 体で十分。
+- ペルソナ 1 体あたり実測 ~50k tokens / 2〜4 分（中規模アプリ）。3 体並列 ≈ 150k tokens / 5 分前後が目安。4 体以上を要求すると起動前に確認プロンプトが出る。
 - 実行ごとに結果は揺れる（非決定的）。実ユーザーテストの代替ではない。
 
 ## ドキュメント

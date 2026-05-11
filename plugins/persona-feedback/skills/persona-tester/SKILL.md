@@ -28,7 +28,28 @@ description: Use when the user wants to test a web app with synthetic personas.
   - `severity_threshold`: `low` | `medium` | `high` | `critical`（既定: `low` — 全て報告）
   - `output_format`: `markdown` | `json` | `both`（既定: `both`）
 - **parallel** (任意): boolean（既定: `true`）
-- **max_parallel** (任意): 整数（既定: `5`）
+- **max_parallel** (任意): 整数（既定: `3`。後述のコスト目安に従う）
+
+## コスト目安
+
+実測値（Opus 4.7 + Playwright MCP + 中規模 Next.js サインアップフロー）:
+
+| 指標 | ペルソナ1体あたり |
+|---|---|
+| トークン消費 | 約 40k〜60k tokens |
+| 実時間 | 2〜4 分 |
+| MCP ツール呼び出し | 30〜50 回 |
+
+スコープが広い（探索的なタスク・複数画面遷移）と倍に振れることがある。
+3 ペルソナ並列 ≈ 130k+ tokens / 4 分強 が一つの目安。
+
+`max_parallel` の既定を 3 にしている理由はここ。4 体以上を要求された場合、
+**メインエージェントは見積もりトークン数と所要時間をユーザーに提示してから**
+起動する。具体的には:
+
+> 4 ペルソナ並列で実行します。概算 ~200k tokens、5 分前後。続行しますか？
+
+を起動前に出す。承認なしには走らせない。
 
 ## 実行フロー
 
@@ -43,6 +64,10 @@ description: Use when the user wants to test a web app with synthetic personas.
 
 ペルソナごとに **Task tool** を呼び出してサブエージェントを起動する。
 サブエージェント定義は `agents/persona-runner.md`。
+
+起動前にメインエージェントは **run timestamp** を1つ確定する（例:
+`20260511-100000`）。これは全ペルソナで共有し、`reports/<timestamp>/...` の
+ディレクトリ構造を統一する。
 
 Task 呼び出しのプロンプトには以下をインラインで埋め込む:
 
@@ -62,12 +87,20 @@ target: <URL>
 focus: <focus list>
 severity_threshold: <threshold>
 
-# 出力先
-screenshots を保存する場合のファイル名プレフィクスは <persona_id>- にしてください。
-最終的にfeedback.schema.json 準拠の JSON のみを返してください。
+# スクリーンショット保存先（MCP の --output-dir からの相対パス）
+screenshot_dir: <timestamp>/screenshots/
+ファイル名は <persona_id>-<連番>-<短い説明>.png 形式で
+browser_take_screenshot の filename に「screenshot_dir + ファイル名」を渡してください。
+
+# 出力契約
+findings の screenshot フィールドには上記の相対パスをそのまま記録すること。
+最終メッセージは feedback.schema.json 準拠の JSON のみを返してください。
 ```
 
 `parallel: true` の場合、**同一メッセージ内で複数の Task 呼び出しを並列に発行する**。
+`.mcp.json` の `--isolated` フラグにより、ペルソナごとに別ブラウザコンテキスト
+（別 Cookie/別 localStorage）が割り当てられるため、入力が他人に書き換わる
+ような干渉は発生しない。
 
 ### 3. 実行フェーズ（サブエージェント側）
 
@@ -83,15 +116,33 @@ screenshots を保存する場合のファイル名プレフィクスは <person
 ### 4. 回収＆永続化フェーズ（責務はメインエージェント）
 
 各 Task 呼び出しの戻り値は persona-runner が返した「最終メッセージ全文」である。
-**メインエージェント（このスキルを実行している側）が以下を行う**:
+**メインエージェント（このスキルを実行している側）は同梱の `save-raw.mjs` を
+ペルソナごとに1回呼ぶだけ**でよい:
 
-1. 戻り値文字列から JSON 本体を抽出する
-   - 期待: 純粋な JSON
-   - 現実: コードフェンス（` ```json ... ``` `）で包まれることがある。
-     その場合は最初の `{` から対応する最後の `}` までを切り出す
-2. `feedback.schema.json` で軽くバリデーション（`persona_id` / `outcome` / `findings` の存在確認）
-3. `reports/<timestamp>/raw/<persona_id>.json` として Write tool で保存する
-4. パース失敗 / 必須欠落のペルソナは「失敗ペルソナ」として記録（partial success）
+```
+node plugins/persona-feedback/skills/persona-tester/scripts/save-raw.mjs \
+  --persona-id <persona_id> \
+  --timestamp <timestamp> \
+  --raw-file <persona-runner の戻り値を書き出した一時ファイル> \
+  [--reports-dir ./reports]
+```
+
+stdin から渡したい場合は `--raw-file -` を指定。
+
+このスクリプトは:
+1. 戻り値文字列から JSON 本体を抽出（コードフェンス / 裸 JSON どちらにも対応）
+2. 必須フィールド (`persona_id` / `target` / `task` / `outcome` / `findings`) の存在確認
+3. `reports/<timestamp>/raw/<persona_id>.json` に整形して保存
+
+を一度に行う。
+
+終了コード:
+- `0` 保存成功
+- `2` JSON 抽出失敗 → そのペルソナは「失敗ペルソナ」扱い (partial success)
+- `3` 必須フィールド欠落 → 同上
+
+非ゼロ終了したペルソナは集約レポートの「Failed Personas」セクションに
+理由付きで記載すること。
 
 persona-runner 側には **Write 権限を渡さない**。サブエージェントが意図せずホスト側
 ファイルを書き換えるリスクを抑え、責務を「JSON を返すだけ」に閉じる。

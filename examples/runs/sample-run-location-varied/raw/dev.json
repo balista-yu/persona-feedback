@@ -1,0 +1,3 @@
+{"persona_id":"dev-engineer","target":"http://localhost:3000/signup","task":"t","outcome":"abandoned",
+"findings":[{"category":"trust","severity":"critical","location":"signup form email field","description":"input が他人のに化ける"}],
+"score":{"overall":2,"would_recommend":false}}
