@@ -47,17 +47,35 @@ python3 -m http.server 8000
 
 `http://localhost:8000` で意図的に課題を仕込んだ静的アプリが立つ。
 
-### b. Claude Code で persona-tester を呼ぶ
+### b. ペルソナ一覧を確認（任意）
+
+```
+ペルソナの一覧を見せて
+```
+
+または `/persona-feedback:personas-list` で同梱+ユーザーペルソナを一覧表示。
+
+### c. Claude Code で persona-tester を呼ぶ
+
+自然言語で:
 
 ```
 http://localhost:8000 を tanaka-60s, gal-20s, dev-engineer の3人で
 「サインアップしてみる」というタスクでテストして
 ```
 
+短くスラッシュ呼び出しでも同じ:
+
+```
+/persona-feedback:persona-tester bundled http://localhost:8000 サインアップしてみる
+```
+
+ペルソナ指定を省くと一覧が出て複数選択 UI に進む（迷ったらこれ）。
+
 3つのサブエージェントが並列で立ち上がり、それぞれが Playwright 経由で
 ブラウザを操作してフィードバックを返す。
 
-### c. レポートを見る
+### d. レポートを見る
 
 ```
 reports/<timestamp>-report.md

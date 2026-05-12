@@ -2,9 +2,11 @@
 name: persona-tester
 description: Use when the user wants to test a web app with synthetic personas.
   Triggers include "test my app with personas", "ペルソナにテストさせて",
-  "run persona feedback on <url>". Requires Playwright MCP. Spawns one or more
-  persona-runner sub-agents, executes a task in a browser, and returns aggregated
-  feedback that highlights cross-persona disagreement.
+  "run persona feedback on <url>". Also invokable as
+  /persona-feedback:persona-tester <personas> <url> <task>. Requires Playwright
+  MCP. Spawns one or more persona-runner sub-agents, executes a task in a
+  browser, and returns aggregated feedback that highlights cross-persona
+  disagreement.
 ---
 
 # persona-tester
@@ -29,6 +31,53 @@ description: Use when the user wants to test a web app with synthetic personas.
   - `output_format`: `markdown` | `json` | `both`（既定: `both`）
 - **parallel** (任意): boolean（既定: `true`）
 - **max_parallel** (任意): 整数（既定: `3`。後述のコスト目安に従う）
+
+## 呼び出し方（3 パターン）
+
+### A. 自然言語（推奨・対話的）
+
+```
+http://localhost:3000 を tanaka-60s と gal-20s でテストして
+新規登録タスク、accessibility 観点で
+```
+
+### B. スラッシュコマンド + $ARGUMENTS（短く明示的）
+
+```
+/persona-feedback:persona-tester tanaka-60s,gal-20s http://localhost:3000 新規登録してみて
+```
+
+`$ARGUMENTS` の解釈ルール:
+
+1. 最初のトークン（空白で区切られた1単位）が **カンマ区切りのペルソナ ID リスト**
+2. 次の URL に見える要素が **target**（`http://` または `https://` を含むトークン）
+3. それ以外の残りが **task** の自然言語記述
+
+例:
+
+| $ARGUMENTS | personas | target | task |
+|---|---|---|---|
+| `tanaka-60s http://x.test 登録` | `[tanaka-60s]` | `http://x.test` | `登録` |
+| `tanaka-60s,dev-engineer http://x.test 価格表を見て検討` | `[tanaka-60s, dev-engineer]` | `http://x.test` | `価格表を見て検討` |
+| `all http://x.test 探索` | `(personas-list の全 ID)` | `http://x.test` | `探索` |
+
+特別な値:
+- `all` → cwd と同梱のすべてのペルソナ
+- `bundled` → 同梱 3 体のみ（`tanaka-60s, gal-20s, dev-engineer`）
+- `user` → cwd 配下のユーザー定義ペルソナのみ
+
+### C. ペルソナ未指定（対話モード）
+
+ユーザーが target と task だけ伝え、ペルソナを指定しなかった場合:
+
+1. まず `personas-list` スキル相当の処理で利用可能ペルソナ一覧を提示する
+   （`node "${CLAUDE_PLUGIN_ROOT}/scripts/list-personas.mjs"` を実行）
+2. `AskUserQuestion` で **複数選択可能** なリストを提示
+3. 選ばれたペルソナで起動に進む
+
+「とりあえずテストして」のような曖昧な指示でも詰まらないようにする。
+ただし target と task は省略不可（不足あれば追加で質問）。
+
 
 ## コスト目安
 

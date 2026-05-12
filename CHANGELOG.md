@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Added (this iteration)
+- **新スキル `personas-list`**: 同梱+ユーザー定義のペルソナを表で一覧
+  表示する。自然言語（「ペルソナ一覧」等）でも
+  `/persona-feedback:personas-list` でも起動可。
+- **`scripts/list-personas.mjs`**: id / name / age / tech_literacy /
+  device / tone / goal を抜き出した表または JSON を出力する Node 製
+  ユーティリティ。
+- **`persona-tester` の $ARGUMENTS 対応**:
+  `/persona-feedback:persona-tester <personas> <url> <task>` 形式の
+  スラッシュ呼び出しをサポート。`personas` にカンマ区切り ID と特別
+  キーワード `all` / `bundled` / `user` を受け付ける。
+- **persona-tester の対話モード**: ペルソナ未指定で呼ばれた場合、
+  list-personas.mjs で一覧を提示し AskUserQuestion で複数選択させて
+  起動する fallback を SKILL.md に明文化。
+
 ### Fixed
 - **MCP ツール名**: プラグイン経由公開時の名前空間
   `mcp__plugin_persona-feedback_playwright__*` に persona-runner の
