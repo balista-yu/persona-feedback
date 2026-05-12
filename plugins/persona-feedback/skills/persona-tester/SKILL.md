@@ -115,8 +115,9 @@ http://localhost:3000 を tanaka-60s と gal-20s でテストして
 サブエージェント定義は `agents/persona-runner.md`。
 
 起動前にメインエージェントは **run timestamp** を1つ確定する（例:
-`20260511-100000`）。これは全ペルソナで共有し、`reports/<timestamp>/...` の
-ディレクトリ構造を統一する。
+`20260511-100000`）。これは全ペルソナで共有し、`.persona-feedback/<timestamp>/...` の
+中間物ディレクトリと `reports/<timestamp>-report.{md,json}` の最終レポート
+ファイル名を一致させる。
 
 Task 呼び出しのプロンプトには以下をインラインで埋め込む:
 
@@ -173,15 +174,16 @@ node plugins/persona-feedback/skills/persona-tester/scripts/save-raw.mjs \
   --persona-id <persona_id> \
   --timestamp <timestamp> \
   --raw-file <persona-runner の戻り値を書き出した一時ファイル> \
-  [--reports-dir ./reports]
+  [--reports-dir ./.persona-feedback]
 ```
 
 stdin から渡したい場合は `--raw-file -` を指定。
+`--reports-dir` は既定で `./.persona-feedback` （中間物の隠しディレクトリ）。
 
 このスクリプトは:
 1. 戻り値文字列から JSON 本体を抽出（コードフェンス / 裸 JSON どちらにも対応）
 2. 必須フィールド (`persona_id` / `target` / `task` / `outcome` / `findings`) の存在確認
-3. `reports/<timestamp>/raw/<persona_id>.json` に整形して保存
+3. `.persona-feedback/<timestamp>/raw/<persona_id>.json` に整形して保存
 
 を一度に行う。
 
@@ -210,23 +212,34 @@ persona-runner 側には **Write 権限を渡さない**。サブエージェン
 
 ```
 node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
-  --feedbacks reports/<timestamp>/raw/*.json \
+  --feedbacks .persona-feedback/<timestamp>/raw \
   --output reports/<timestamp>-report.md \
   --format markdown
 ```
+
+入力（中間物）は隠しディレクトリ `.persona-feedback/`、
+出力（最終レポート）は可視ディレクトリ `reports/` という分離。
 
 `--format json` で JSON 出力。`--format both` で両方を生成する。
 
 ## 出力先
 
-すべて **ユーザーの cwd 配下** に保存する（プラグインキャッシュではない）:
+すべて **ユーザーの cwd 配下** に保存する（プラグインキャッシュではない）。
+**最終レポートと中間物を分離**するのがこのプラグインの規約:
+
+### 最終レポート（可視・残す）— `reports/`
 
 - Markdown: `reports/<timestamp>-report.md`
 - JSON: `reports/<timestamp>-report.json`
-- 生フィードバック: `reports/<timestamp>/raw/<persona_id>.json`
-- スクリーンショット: `reports/<timestamp>/screenshots/<persona_id>-*.png`
 
-`<timestamp>` は `YYYYMMDD-HHmmss` 形式。
+### 中間物（隠し・捨てる前提）— `.persona-feedback/`
+
+- 生フィードバック: `.persona-feedback/<timestamp>/raw/<persona_id>.json`
+- スクリーンショット: `.persona-feedback/<timestamp>/screenshots/<persona_id>-*.png`
+
+`.persona-feedback/` は `.gitignore` 済み。`/persona-feedback:clean` スキルで
+一括削除可能。`<timestamp>` は `YYYYMMDD-HHmmss` 形式で、最終レポートと
+中間物で同じ値を使い対応付ける。
 
 ## エラーハンドリング (D-08: partial success)
 

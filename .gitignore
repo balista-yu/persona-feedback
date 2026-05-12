@@ -8,6 +8,7 @@
 
 # persona-feedback runtime outputs
 /reports/
+/.persona-feedback/
 *.log
 
 # Node

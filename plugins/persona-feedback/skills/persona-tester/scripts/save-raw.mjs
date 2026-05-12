@@ -4,7 +4,11 @@
  *
  * persona-runner サブエージェントの戻り値（最終メッセージ全文）から JSON 本体を
  * 抽出し、feedback.schema.json で軽くバリデーションした上で
- * reports/<timestamp>/raw/<persona_id>.json に保存する。
+ * <base-dir>/<timestamp>/raw/<persona_id>.json に保存する。
+ *
+ * 既定 base-dir は ./.persona-feedback（中間物の隠しディレクトリ）。
+ * 最終レポート（Markdown/JSON）は別の場所 (./reports/) に出力されるが、
+ * このスクリプトは中間物の raw 保存だけを扱う。
  *
  * メインエージェント（persona-tester スキル）から1ペルソナごとに呼ぶ。
  *
@@ -13,7 +17,7 @@
  *     --persona-id tanaka-60s \
  *     --timestamp 20260511-100000 \
  *     --raw-file /tmp/runner-output.txt \
- *     [--reports-dir ./reports]
+ *     [--reports-dir ./.persona-feedback]
  *
  * --raw-file は persona-runner の戻り値をそのまま書き出した一時ファイル。
  * stdin 経由で渡したい場合は --raw-file - を指定する。
@@ -28,7 +32,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
 function parseArgs(argv) {
-  const args = { reportsDir: './reports' };
+  const args = { reportsDir: './.persona-feedback' };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--persona-id') args.personaId = argv[++i];
