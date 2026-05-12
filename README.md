@@ -117,6 +117,37 @@ persona-tester で http://localhost:3000 をテスト
 実行後は `reports/<timestamp>-report.md` に統合レポートが出力される。
 出力サンプル: [`examples/runs/sample-run/report.md`](./examples/runs/sample-run/report.md)
 
+### 中間物のクリーンアップ
+
+スクリーンショットと生 JSON は `./.persona-feedback/<timestamp>/` 配下（隠しディレクトリ）に保存される。
+最終レポート `./reports/<timestamp>-report.*` だけ残せば良いので、中間物は定期的に掃除すると吉:
+
+```
+/persona-feedback:clean --keep-last 3
+```
+
+最新 3 run の中間物だけ残して残りを削除。詳しい引数は `clean` スキル参照。
+
+## 出力構造
+
+```
+<project>/
+├── reports/                       # 最終レポート（残す）
+│   ├── 20260512-100000-report.md
+│   └── 20260512-100000-report.json
+└── .persona-feedback/             # 中間物（隠し・clean 対象）
+    └── 20260512-100000/
+        ├── raw/                   # ペルソナ別生フィードバック
+        │   ├── tanaka-60s.json
+        │   ├── gal-20s.json
+        │   └── dev-engineer.json
+        └── screenshots/           # Playwright が撮ったキャプチャ
+            ├── tanaka-60s-01-top.png
+            └── ...
+```
+
+両者は `.gitignore` 済み。
+
 ## 注意
 
 - ペルソナは実ブラウザで本当に操作する。本番環境や個人情報を含む環境には気軽に走らせない。

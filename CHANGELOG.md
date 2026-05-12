@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
 ### Added (this iteration)
+- **出力構造の二段分離**: 中間物（スクリーンショット / 生 JSON）を
+  隠しディレクトリ `./.persona-feedback/<timestamp>/` に隔離し、最終
+  レポート（Markdown / JSON）だけ `./reports/<timestamp>-report.*` に
+  残す方式に変更。`.mcp.json` の `--output-dir` を `./reports` →
+  `./.persona-feedback` に変更。`.gitignore` も更新。「PJ ルート直下
+  に png が散乱する」問題への対処。
+- **新スキル `clean`**: `/persona-feedback:clean` で中間物の一括削除。
+  `--keep-last <N>` で最新 N run 分のみ保持、`--include-reports` で
+  最終レポートも対象、`--dry-run` で削除対象を事前確認可。
+- **`scripts/clean.mjs`**: 上記 clean スキルの実体ユーティリティ。
+  YYYYMMDD-HHmmss 形式の timestamp ディレクトリのみを対象にし、
+  意図しないディレクトリ削除を防ぐ。
 - **新スキル `personas-list`**: 同梱+ユーザー定義のペルソナを表で一覧
   表示する。自然言語（「ペルソナ一覧」等）でも
   `/persona-feedback:personas-list` でも起動可。
