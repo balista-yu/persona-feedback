@@ -23,15 +23,7 @@
 
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve, basename } from 'node:path';
-
-function normalizeLocation(loc) {
-  if (!loc) return '';
-  return String(loc)
-    .toLowerCase()
-    .replace(/[\s　]+/g, '')
-    .replace(/["'`「」『』]/g, '')
-    .replace(/[、。,;.!?！？:：]/g, '');
-}
+import { normalizeLocation } from './normalize-location.mjs';
 
 function findingKey(persona_id, find) {
   return `${persona_id}::${find.category}::${normalizeLocation(find.location)}`;
@@ -65,8 +57,31 @@ function indexBehaviorMetrics(report) {
 /**
  * 2レポートを比較する。
  * from / to は aggregate.mjs が出力する report.json の構造。
+ *
+ * target / task が一致しない場合は `warnings` フィールドにメタ警告を入れる。
+ * 違う URL の run を baseline に指定してしまうと「UX Regression」として
+ * 無意味な diff が出るため、レポート上で明示的にユーザーへ伝える
+ * （PR #17 レビュー指摘 🔴-2）。
  */
 export function diffReports(from, to) {
+  const warnings = [];
+  if (from.target && to.target && from.target !== to.target) {
+    warnings.push({
+      type: 'target_mismatch',
+      from: from.target,
+      to: to.target,
+      message: `baseline と current の target が一致しません。違う URL を比較しても UX Regression として意味のある結果は得られません。`,
+    });
+  }
+  if (from.task && to.task && from.task !== to.task) {
+    warnings.push({
+      type: 'task_mismatch',
+      from: from.task,
+      to: to.task,
+      message: `baseline と current の task が一致しません。同じ画面でも違うタスクなら findings は別物として扱うべきです。`,
+    });
+  }
+
   const fromFeedbacks = indexFeedbacksByPersona(from);
   const toFeedbacks = indexFeedbacksByPersona(to);
   const allPersonas = new Set([...fromFeedbacks.keys(), ...toFeedbacks.keys()]);
@@ -137,6 +152,7 @@ export function diffReports(from, to) {
       task: to.task,
       generated_at: to.generated_at,
     },
+    warnings,
     persona_deltas: personaDeltas,
     findings: {
       added: addedFindings,
@@ -166,6 +182,16 @@ export function renderDiffMarkdown(diff) {
   lines.push(`- **前回**: ${diff.from.generated_at ?? '(unknown)'}`);
   lines.push(`- **今回**: ${diff.to.generated_at ?? '(unknown)'}`);
   lines.push('');
+
+  if (Array.isArray(diff.warnings) && diff.warnings.length > 0) {
+    lines.push('### ⚠️ 警告');
+    for (const w of diff.warnings) {
+      lines.push(`- **${w.type}**: ${w.message}`);
+      lines.push(`  - from: \`${w.from}\``);
+      lines.push(`  - to: \`${w.to}\``);
+    }
+    lines.push('');
+  }
 
   lines.push('### ペルソナ別スコア / outcome 変化');
   lines.push('');
@@ -283,10 +309,19 @@ function main() {
   let toPath = args.to;
   if (!fromPath && args.reportsDir) {
     const dir = resolve(args.reportsDir);
-    const files = readdirSync(dir).filter(f => /-report\.json$/.test(f)).sort();
+    let files;
+    try {
+      files = readdirSync(dir).filter(f => /-report\.json$/.test(f)).sort();
+    } catch (e) {
+      console.error(`[warn] reports dir not readable (${dir}): ${e.message}. Skipping diff.`);
+      process.exit(0);
+    }
     if (files.length < 2) {
-      console.error(`Need at least 2 reports in ${dir}; found ${files.length}.`);
-      process.exit(1);
+      // PR #17 レビュー指摘 🟡-5: 初回実行直後など baseline 未生成のケースは
+      // hard error ではなく warn + exit 0 で CI に組み込みやすくする。
+      // --auto-baseline-dir 側（null returned → silent skip）とも挙動を揃える。
+      console.error(`[warn] need at least 2 reports in ${dir}; found ${files.length}. Skipping diff (no baseline yet).`);
+      process.exit(0);
     }
     fromPath = join(dir, files[files.length - 2]);
     toPath = join(dir, files[files.length - 1]);

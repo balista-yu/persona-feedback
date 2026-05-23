@@ -17,6 +17,7 @@ import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'n
 import { dirname, join, resolve, extname, basename } from 'node:path';
 import { computeMetrics, detectMismatch, renderSectionMarkdown as renderBehaviorMetricsMarkdown } from './behavior-metrics.mjs';
 import { diffReports, renderDiffMarkdown, findPreviousReport } from './diff-reports.mjs';
+import { normalizeLocation } from './normalize-location.mjs';
 
 function parseArgs(argv) {
   const args = { format: 'markdown', feedbacks: [] };
@@ -112,19 +113,6 @@ function loadFeedback(file) {
 }
 
 const SEVERITY_RANK = { low: 1, medium: 2, high: 3, critical: 4 };
-
-/**
- * location を粗く正規化する。日本語/英語混在、表記揺れに弱いので
- * 完全一致を諦め、目立つ語だけ拾える形にする。
- */
-function normalizeLocation(loc) {
-  if (!loc) return '';
-  return String(loc)
-    .toLowerCase()
-    .replace(/[\s　]+/g, '')
-    .replace(/["'`「」『』]/g, '')
-    .replace(/[、。,;.!?！？:：]/g, '');
-}
 
 /**
  * 不一致分析:
@@ -333,7 +321,12 @@ function toMarkdown(feedbacks, analysis, diffMarkdown) {
   return out.join('\n');
 }
 
-function toJson(feedbacks, analysis, diff) {
+/**
+ * 統合レポートの構造体を構築する（JSON 文字列化はしない）。
+ * diff 計算の input にもなるため、文字列化と分離して round-trip を避ける
+ * （PR #17 レビュー指摘 🟡-3）。
+ */
+function buildReportObject(feedbacks, analysis, diff) {
   const behaviorMetrics = feedbacks.map(fb => {
     const metrics = computeMetrics(fb);
     return {
@@ -342,7 +335,7 @@ function toJson(feedbacks, analysis, diff) {
       mismatch: detectMismatch(fb, metrics),
     };
   });
-  return JSON.stringify({
+  return {
     generated_at: new Date().toISOString(),
     target: feedbacks[0]?.target,
     task: feedbacks[0]?.task,
@@ -353,8 +346,12 @@ function toJson(feedbacks, analysis, diff) {
     controversial: analysis.controversial,
     behavior_metrics: behaviorMetrics,
     ...(diff ? { diff } : {}),
-    raw_feedbacks: feedbacks
-  }, null, 2);
+    raw_feedbacks: feedbacks,
+  };
+}
+
+function toJson(feedbacks, analysis, diff) {
+  return JSON.stringify(buildReportObject(feedbacks, analysis, diff), null, 2);
 }
 
 function ensureDir(filePath) {
@@ -395,8 +392,8 @@ function main() {
   if (baselinePath) {
     try {
       const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
-      // 現行 run の構造を擬似 report として組み立てて diff に渡す
-      const synthCurrent = JSON.parse(toJson(feedbacks, analysis, null));
+      // 現行 run の構造体を直接組み立てて diff に渡す（round-trip しない）
+      const synthCurrent = buildReportObject(feedbacks, analysis, null);
       diff = diffReports(baseline, synthCurrent);
       diffMarkdown = renderDiffMarkdown(diff);
       console.log(`baseline used: ${baselinePath}`);
