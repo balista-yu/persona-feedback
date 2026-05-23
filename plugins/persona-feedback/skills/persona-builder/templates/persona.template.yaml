@@ -24,10 +24,28 @@ personality:
   - <性格特性3>
 
 # CRITICAL: LLMの「賢すぎ問題」を抑制する明示ルール。最低1つ、できれば3つ以上。
+# 形式は2通り（どちらか一方）:
+#
+# === A. legacy: 自由文の配列 ===
 behavior_rules:
   - <例: "専門用語が出たら推論せず『分からない』と判断">
   - <例: "エラーメッセージは読まず戻るボタンを優先">
   - <例: "3秒以上の待機で離脱を検討">
+#
+# === B. 構造化 DSL（推奨。能力減算プリミティブ） ===
+# behavior_rules:
+#   give_up_after: 2_retries           # 2_retries / 30s / 1min など
+#   panic_on:                          # enum: english_in_error / modal_dialog_unexpected /
+#     - english_in_error               # permission_request / credit_card_request /
+#     - modal_dialog_unexpected        # password_request / popup_ad / unexpected_redirect
+#   vocabulary:
+#     block_jargon: true               # 専門用語の意味推測を禁止
+#     confused_by: ["ログイン", "認証"] # 困惑する語のリスト
+#   attention_span: 30s                # 集中力の限界
+#   reading_speed: slow                # slow / normal / fast
+#   on_ambiguous_button: ask_or_skip   # ask_or_skip / infer_safely / tap_anyway
+#   custom:                            # プリミティブに収まらないルール
+#     - "送料が確定するまで注文確定ボタンを押さない"
 
 evaluation_focus:
   - first_impression

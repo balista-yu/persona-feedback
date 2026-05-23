@@ -10,6 +10,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Added (issue #11: structured behavior_rules DSL)
+- **構造化 DSL の `behavior_rules` をスキーマで受理**: 既存の配列（自由文）
+  形式に加え、`give_up_after` / `panic_on` / `vocabulary.{block_jargon,confused_by}` /
+  `attention_span` / `reading_speed` / `on_ambiguous_button` / `custom` の
+  能力減算プリミティブをオブジェクト形式で書ける。`persona.schema.json` を
+  `oneOf` 対応に拡張。
+- **`scripts/behavior-rules.mjs`**: 構造化 DSL を自然文制約のリストに
+  展開する renderer。CLI として `node behavior-rules.mjs render <persona.yaml>`
+  でも、モジュール `renderBehaviorRules` / `expandStructured` でも呼べる。
+- **同梱ペルソナ `yamada-50s-dsl.yaml`**: 構造化 DSL の使用例。
+  50代・はじめてのオンラインショップ・慎重派。
+- **`persona-tester` SKILL 更新**: 構造化 DSL の場合は `behavior-rules.mjs render`
+  の出力を「守るべき制約」セクションとして runner プロンプトに inject する手順を
+  明文化。runner 側は legacy/DSL のどちらも自然文リストとして受け取り、扱いが
+  分岐しない。
+- **`persona-builder` SKILL / persona.template.yaml 更新**: 構造化 DSL の
+  雛形とプリミティブ一覧を反映。
+- **`docs/persona-spec.md`**: プリミティブ一覧表、両形式のサンプル、
+  「ペルソナ＝制約セット」という再定義を追記。
+- **`tests/test-behavior-rules.mjs`**: legacy/DSL 双方の renderer ユニット
+  テスト 17 件。`npm test` で validate-personas と合わせて走る。
+- **`npm run render-rules <persona.yaml>`**: CLI ショートカット。
+
 ### Added (this iteration)
 - **出力構造の二段分離**: 中間物（スクリーンショット / 生 JSON）を
   隠しディレクトリ `./.persona-feedback/<timestamp>/` に隔離し、最終
