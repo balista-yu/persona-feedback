@@ -60,6 +60,7 @@ const sampleDirs = [
   'examples/runs/sample-run/raw',
   'examples/runs/sample-run-recommend-split/raw',
   'examples/runs/sample-run-location-varied/raw',
+  'examples/runs/sample-run-behavior-metrics/raw',
 ];
 for (const rel of sampleDirs) {
   const dir = join(ROOT, rel);

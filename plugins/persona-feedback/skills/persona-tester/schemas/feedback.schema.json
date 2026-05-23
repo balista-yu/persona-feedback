@@ -47,6 +47,50 @@
         "overall": { "type": "number", "minimum": 0, "maximum": 10 },
         "would_recommend": { "type": "boolean" }
       }
+    },
+    "action_log": {
+      "type": "array",
+      "description": "Time-stamped action trace recorded by persona-runner. Drives behavior_metrics computation in aggregate.mjs.",
+      "items": {
+        "type": "object",
+        "required": ["at_seconds", "action"],
+        "additionalProperties": false,
+        "properties": {
+          "at_seconds": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Seconds since started_at."
+          },
+          "action": {
+            "enum": [
+              "navigate",
+              "snapshot",
+              "click",
+              "type",
+              "select",
+              "press_key",
+              "scroll",
+              "wait",
+              "back",
+              "cancel",
+              "screenshot",
+              "give_up"
+            ]
+          },
+          "target_desc": {
+            "type": "string",
+            "description": "Human-readable description of the element / URL acted upon (e.g. 'メアド入力欄', 'http://x/login')."
+          },
+          "location": {
+            "type": "string",
+            "description": "Logical screen identifier, e.g. URL or step name. Used to compute time-on-screen and back/cancel rate per screen."
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional free-text annotation (e.g. '迷った', '戻った')."
+          }
+        }
+      }
     }
   },
   "allOf": [

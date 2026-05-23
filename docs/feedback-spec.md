@@ -28,7 +28,16 @@
   "score": {
     "overall": 0..10,
     "would_recommend": true | false
-  }
+  },
+  "action_log": [
+    {
+      "at_seconds": 0.0,
+      "action": "navigate | snapshot | click | type | select | press_key | scroll | wait | back | cancel | screenshot | give_up",
+      "target_desc": "操作対象の人間可読な説明（例: メアド欄）",
+      "location": "現在の URL or 論理画面名",
+      "note": "任意。『迷った』等の自己観察"
+    }
+  ]
 }
 ```
 
@@ -61,6 +70,13 @@
    - overall スコア差 ≥ 3、または would_recommend が割れた要素。
      → 「誰のためのプロダクトか」の整理が必要なシグナル。
 
+## 🧭 行動メトリクス (behavior_metrics)
+   - 各 persona の action_log から計算した hesitation / scroll_back / back_or_cancel /
+     time_on_screen。
+   - 🚩 言葉と行動の食い違い: overall ≥ 7（好評価）または outcome=completed のとき
+     hesitation_mean ≥ 5s / back_or_cancel ≥ 3 / scroll_back_and_forth ≥ 4 のいずれかが
+     成立すると赤フラグ。「分かりやすかった」と言いつつ実は迷っていたケースを拾う。
+
 ## 🗣 各ペルソナのナレーション
    - 一人称の生の声を全文表示。
 ```
@@ -70,3 +86,14 @@
 統合レポートで一番効くのが `quote` の生の声。
 "アップロードって何？" のような短く具体的な発話があると、
 チームに直接刺さるフィードバックになる。
+
+## なぜ action_log を取るのか
+
+LLM ペルソナは何でも言語化してしまうため、本物の「言いよどみ」「沈黙」は
+再現できない構造的限界がある。`narrative` と `score` だけでは「分かりやすかった」
+と言いつつ実は迷っていたケースを検出できない。
+
+`action_log` は Playwright MCP の操作トレースを構造化して残し、aggregate 側で
+hesitation / scroll / back・cancel 等のメトリクスを計算する。これにより
+**言葉と行動の食い違い** を赤フラグで提示できる。AI ペルソナの構造的弱点を
+行動シグナルで補強するのが狙い。

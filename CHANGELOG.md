@@ -10,6 +10,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Added (issue #13: behavior_metrics)
+- **`action_log` フィールド**: feedback.schema.json に追加。persona-runner が
+  各 MCP ツール呼び出し（navigate / snapshot / click / type / select / press_key /
+  scroll / back / cancel / screenshot / give_up / wait）の前後で時刻付きエントリ
+  を記録する。
+- **`scripts/behavior-metrics.mjs`**: action_log から hesitation_seconds (snapshot →
+  次の意味ある操作までの秒数) / scroll_back_and_forth / back_or_cancel_count /
+  time_on_screen_seconds を計算する module。`computeMetrics` / `detectMismatch` /
+  `renderSectionMarkdown` をエクスポート。
+- **言葉と行動の食い違い検出**: overall ≥ 7 または outcome=completed のときに
+  hesitation_mean ≥ 5s / back_or_cancel ≥ 3 / scroll_back_and_forth ≥ 4 のいずれかが
+  成立すると赤フラグ。AI ペルソナが「分かりやすかった」と言いつつ実は迷っていた
+  ケースを拾う。
+- **aggregate.mjs 拡張**: 統合レポートに `## 🧭 行動メトリクス` セクションを追加。
+  Markdown では表 + 食い違いフラグ + 折りたたみで時刻別滞在時間、JSON では
+  `behavior_metrics[]` キーで永続化。
+- **persona-runner.md 更新**: action_log 記録を必須責務として明文化。出力 JSON 例
+  にも action_log を含めた。
+- **`examples/runs/sample-run-behavior-metrics/`**: 「完走したのに迷ってる」
+  ケースを示すサンプル。tanaka-60s が overall=8 で食い違いフラグが立つ。
+- **`tests/test-behavior-metrics.mjs`**: hesitation / scroll / back・cancel /
+  time_on_screen / mismatch 検出 / Markdown レンダリングのユニットテスト 12 件。
+
 ### Added (issue #11: structured behavior_rules DSL)
 - **構造化 DSL の `behavior_rules` をスキーマで受理**: 既存の配列（自由文）
   形式に加え、`give_up_after` / `panic_on` / `lexical.{block_jargon,confused_by}` /
