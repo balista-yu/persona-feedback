@@ -34,14 +34,14 @@ behavior_rules:
 #
 # === B. 構造化 DSL（推奨。能力減算プリミティブ） ===
 # behavior_rules:
-#   give_up_after: 2_retries           # 2_retries / 30s / 1min など
+#   give_up_after: 2_retries           # 2_retries / 30s / 1min など。0 は不可
 #   panic_on:                          # enum: english_in_error / modal_dialog_unexpected /
 #     - english_in_error               # permission_request / credit_card_request /
 #     - modal_dialog_unexpected        # password_request / popup_ad / unexpected_redirect
-#   vocabulary:
+#   lexical:                           # 「何を理解できないか」。トップレベル vocabulary（どう話すか）とは別軸
 #     block_jargon: true               # 専門用語の意味推測を禁止
 #     confused_by: ["ログイン", "認証"] # 困惑する語のリスト
-#   attention_span: 30s                # 集中力の限界
+#   attention_span: 30s                # 集中力の限界。0 は不可
 #   reading_speed: slow                # slow / normal / fast
 #   on_ambiguous_button: ask_or_skip   # ask_or_skip / infer_safely / tap_anyway
 #   custom:                            # プリミティブに収まらないルール

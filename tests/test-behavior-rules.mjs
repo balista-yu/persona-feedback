@@ -76,9 +76,9 @@ test('panic_on: 未知キーはフォールバック展開', () => {
   assert.match(out[0], /hypothetical_future_key/);
 });
 
-test('vocabulary.block_jargon と confused_by の両方', () => {
+test('lexical.block_jargon と confused_by の両方', () => {
   const out = expandStructured({
-    vocabulary: {
+    lexical: {
       block_jargon: true,
       confused_by: ['ログイン', '認証'],
     },
@@ -86,6 +86,22 @@ test('vocabulary.block_jargon と confused_by の両方', () => {
   assert.equal(out.length, 2);
   assert.match(out[0], /専門用語.*分からない/);
   assert.match(out[1], /ログイン.*認証/);
+});
+
+test('lexical.block_jargon のみ（confused_by なし）', () => {
+  const out = expandStructured({
+    lexical: { block_jargon: true },
+  });
+  assert.equal(out.length, 1);
+  assert.match(out[0], /専門用語/);
+});
+
+test('lexical.confused_by のみ（block_jargon false）', () => {
+  const out = expandStructured({
+    lexical: { confused_by: ['OAuth'] },
+  });
+  assert.equal(out.length, 1);
+  assert.match(out[0], /OAuth/);
 });
 
 test('attention_span: 30s', () => {
@@ -117,13 +133,13 @@ test('複数プリミティブの組み合わせ順序', () => {
   const out = expandStructured({
     give_up_after: '2_retries',
     panic_on: ['english_in_error'],
-    vocabulary: { block_jargon: true },
+    lexical: { block_jargon: true },
     attention_span: '1min',
     reading_speed: 'slow',
     on_ambiguous_button: 'ask_or_skip',
     custom: ['カスタムルール'],
   });
-  // 出力順 = give_up_after → panic_on → vocabulary → attention_span
+  // 出力順 = give_up_after → panic_on → lexical → attention_span
   //        → reading_speed → on_ambiguous_button → custom
   assert.equal(out.length, 7);
   assert.match(out[0], /リトライ/);
@@ -153,6 +169,65 @@ test('renderBehaviorRules は object を expandStructured に委譲する', () =
   assert.equal(out.length, 2);
   assert.match(out[0], /3回リトライ/);
   assert.equal(out[1], '追加ルール');
+});
+
+console.log('## persona.schema.json: DSL のスキーマ拒否ケース');
+
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname as pathDirname, resolve as pathResolve } from 'node:path';
+import Ajv2020 from 'ajv/dist/2020.js';
+import addFormats from 'ajv-formats';
+
+const __dirname = pathDirname(fileURLToPath(import.meta.url));
+const PERSONA_SCHEMA = JSON.parse(readFileSync(
+  pathResolve(__dirname, '../plugins/persona-feedback/skills/persona-tester/schemas/persona.schema.json'),
+  'utf8',
+));
+const ajvDsl = new Ajv2020({ allErrors: true, strict: false });
+addFormats(ajvDsl);
+const validate = ajvDsl.compile(PERSONA_SCHEMA);
+
+function makePersonaWith(behaviorRules) {
+  return {
+    id: 'test-persona',
+    name: 'テスト',
+    demographics: { tech_literacy: 'low' },
+    context: { device: 'desktop', goal: 'x' },
+    behavior_rules: behaviorRules,
+  };
+}
+
+test('give_up_after: 0_retries はスキーマで拒否', () => {
+  assert.equal(validate(makePersonaWith({ give_up_after: '0_retries' })), false);
+});
+
+test('give_up_after: 0s はスキーマで拒否', () => {
+  assert.equal(validate(makePersonaWith({ give_up_after: '0s' })), false);
+});
+
+test('give_up_after: 2_retries はスキーマで許可', () => {
+  assert.equal(validate(makePersonaWith({ give_up_after: '2_retries' })), true);
+});
+
+test('attention_span: 0s はスキーマで拒否', () => {
+  assert.equal(validate(makePersonaWith({ attention_span: '0s' })), false);
+});
+
+test('panic_on: 空配列はスキーマで拒否（minItems: 1）', () => {
+  assert.equal(validate(makePersonaWith({ panic_on: [] })), false);
+});
+
+test('lexical.confused_by: 空配列はスキーマで拒否', () => {
+  assert.equal(validate(makePersonaWith({ lexical: { confused_by: [] } })), false);
+});
+
+test('custom: 空配列はスキーマで拒否', () => {
+  assert.equal(validate(makePersonaWith({ custom: [] })), false);
+});
+
+test('DSL 内の旧キー vocabulary は additionalProperties:false で拒否', () => {
+  assert.equal(validate(makePersonaWith({ vocabulary: { block_jargon: true } })), false);
 });
 
 if (failed > 0) {

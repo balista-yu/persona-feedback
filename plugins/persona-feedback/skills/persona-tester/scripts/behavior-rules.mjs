@@ -70,14 +70,14 @@ function renderAttentionSpan(value) {
   return `集中力の限界: ${v}`;
 }
 
-function renderVocabularyConstraint(vocab) {
+function renderLexicalConstraint(lex) {
   const out = [];
-  if (vocab.block_jargon === true) {
+  if (lex.block_jargon === true) {
     out.push('専門用語・カタカナ語に遭遇したら推測せず「分からない」と表明する。賢く意味を補完してはいけない');
   }
-  if (Array.isArray(vocab.confused_by) && vocab.confused_by.length > 0) {
+  if (Array.isArray(lex.confused_by) && lex.confused_by.length > 0) {
     out.push(
-      `次の語に遭遇したら混乱・困惑する（意味を推測しない）: ${vocab.confused_by.join(' / ')}`
+      `次の語に遭遇したら混乱・困惑する（意味を推測しない）: ${lex.confused_by.join(' / ')}`
     );
   }
   return out;
@@ -85,7 +85,7 @@ function renderVocabularyConstraint(vocab) {
 
 /**
  * 構造化 DSL（オブジェクト）を自然文制約の配列に展開する。
- * キーの順序は出力でも保たれる（出力順 = give_up_after → panic_on → vocabulary →
+ * キーの順序は出力でも保たれる（出力順 = give_up_after → panic_on → lexical →
  * attention_span → reading_speed → on_ambiguous_button → custom）。
  */
 export function expandStructured(dsl) {
@@ -109,8 +109,8 @@ export function expandStructured(dsl) {
     }
   }
 
-  if (dsl.vocabulary && typeof dsl.vocabulary === 'object') {
-    lines.push(...renderVocabularyConstraint(dsl.vocabulary));
+  if (dsl.lexical && typeof dsl.lexical === 'object') {
+    lines.push(...renderLexicalConstraint(dsl.lexical));
   }
 
   if ('attention_span' in dsl) {

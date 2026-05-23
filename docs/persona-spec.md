@@ -54,7 +54,7 @@ behavior_rules:
     - english_in_error
     - modal_dialog_unexpected
     - credit_card_request
-  vocabulary:
+  lexical:
     block_jargon: true
     confused_by: ["カート", "チェックアウト"]
   attention_span: 2min
@@ -68,14 +68,24 @@ behavior_rules:
 
 | Key | Type | 例 | 意味 |
 |---|---|---|---|
-| `give_up_after` | string | `2_retries`, `30s`, `1min` | 諦めるまでの回数/時間 |
-| `panic_on` | enum[] | `english_in_error`, `modal_dialog_unexpected`, `permission_request`, `credit_card_request`, `password_request`, `popup_ad`, `unexpected_redirect` | パニックの引き金 |
-| `vocabulary.block_jargon` | boolean | `true` | 専門用語の意味推測を禁止 |
-| `vocabulary.confused_by` | string[] | `["ログイン"]` | 困惑する語 |
-| `attention_span` | string | `30s`, `2min` | 集中力の限界 |
+| `give_up_after` | string | `2_retries`, `30s`, `1min` | 諦めるまでの回数/時間（0 不可） |
+| `panic_on` | enum[] | `english_in_error`, `modal_dialog_unexpected`, `permission_request`, `credit_card_request`, `password_request`, `popup_ad`, `unexpected_redirect` | パニックの引き金（minItems: 1） |
+| `lexical.block_jargon` | boolean | `true` | 専門用語の意味推測を禁止 |
+| `lexical.confused_by` | string[] | `["ログイン"]` | 困惑する語（minItems: 1） |
+| `attention_span` | string | `30s`, `2min` | 集中力の限界（0 不可） |
 | `reading_speed` | enum | `slow` / `normal` / `fast` | 読書速度 |
 | `on_ambiguous_button` | enum | `ask_or_skip` / `infer_safely` / `tap_anyway` | 曖昧なボタンへの態度 |
-| `custom` | string[] | `["送料が確定するまで注文しない"]` | プリミティブに収まらない自由文 |
+| `custom` | string[] | `["送料が確定するまで注文しない"]` | プリミティブに収まらない自由文（minItems: 1） |
+
+#### `lexical` と top-level `vocabulary` の違い
+
+両方とも「語」を扱うキーで紛らわしいので注意:
+
+- `vocabulary.tone` / `vocabulary.avoid_terms` (persona トップレベル) は **どう話すか**（narrative / quote の口調を決める）
+- `behavior_rules.lexical.block_jargon` / `lexical.confused_by` (DSL 内) は **何を理解できないか**（runner の認知能力を抑制する）
+
+両者は併用可能。例: 「丁寧語で話すが、技術用語の意味は推測しない」なら
+`vocabulary.tone: formal` + `lexical.block_jargon: true`。
 
 構造化 DSL は `scripts/behavior-rules.mjs render <persona.yaml>` で
 自然文制約のリストに展開され、persona-runner にそのまま渡される。

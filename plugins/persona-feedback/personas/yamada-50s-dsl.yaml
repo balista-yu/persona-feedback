@@ -23,6 +23,8 @@ personality:
   - "感情移入型（『ご注文ありがとうございます』に安心する）"
 
 # === 構造化 DSL ===
+# `lexical` は「何を理解できないか」、トップレベル `vocabulary` は「どう話すか」。
+# 別軸なので併用できる。
 behavior_rules:
   give_up_after: 2_retries
   panic_on:
@@ -30,7 +32,7 @@ behavior_rules:
     - modal_dialog_unexpected
     - credit_card_request
     - popup_ad
-  vocabulary:
+  lexical:
     block_jargon: true
     confused_by:
       - "カート"

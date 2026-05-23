@@ -53,11 +53,12 @@
           "properties": {
             "give_up_after": {
               "type": "string",
-              "pattern": "^(\\d+_(retries|attempts|errors)|\\d+(ms|s|min))$",
-              "description": "When to abandon the task. Examples: `2_retries`, `30s`, `1min`."
+              "pattern": "^([1-9]\\d*_(retries|attempts|errors)|[1-9]\\d*(ms|s|min))$",
+              "description": "When to abandon the task. Examples: `2_retries`, `30s`, `1min`. Zero is rejected."
             },
             "panic_on": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "enum": [
                   "english_in_error",
@@ -72,11 +73,11 @@
               "uniqueItems": true,
               "description": "Triggers that cause the persona to panic and disengage."
             },
-            "vocabulary": {
+            "lexical": {
               "type": "object",
               "additionalProperties": false,
               "minProperties": 1,
-              "description": "Lexical capability suppression. Distinct from top-level `vocabulary` (tone / avoid_terms).",
+              "description": "Lexical capability suppression. Distinct from top-level `vocabulary` (tone / avoid_terms): `vocabulary` describes how the persona speaks, `lexical` describes what they refuse to understand.",
               "properties": {
                 "block_jargon": {
                   "type": "boolean",
@@ -84,6 +85,7 @@
                 },
                 "confused_by": {
                   "type": "array",
+                  "minItems": 1,
                   "items": { "type": "string" },
                   "description": "Specific words that confuse the persona on sight."
                 }
@@ -91,8 +93,8 @@
             },
             "attention_span": {
               "type": "string",
-              "pattern": "^\\d+(ms|s|min)$",
-              "description": "Concentration limit. Examples: `30s`, `2min`."
+              "pattern": "^[1-9]\\d*(ms|s|min)$",
+              "description": "Concentration limit. Examples: `30s`, `2min`. Zero is rejected."
             },
             "reading_speed": {
               "enum": ["slow", "normal", "fast"],
@@ -104,6 +106,7 @@
             },
             "custom": {
               "type": "array",
+              "minItems": 1,
               "items": { "type": "string" },
               "description": "Free-text rules that don't fit the structured primitives."
             }
