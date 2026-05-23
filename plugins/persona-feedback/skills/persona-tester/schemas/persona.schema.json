@@ -37,10 +37,82 @@
       "items": { "type": "string" }
     },
     "behavior_rules": {
-      "type": "array",
-      "minItems": 1,
-      "items": { "type": "string" },
-      "description": "Explicit constraints that suppress LLM over-competence."
+      "description": "Explicit constraints that suppress LLM over-competence. Either a free-text list (legacy) or a structured DSL of capability-suppression primitives.",
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Legacy free-text rules."
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "description": "Structured DSL of capability-suppression primitives.",
+          "properties": {
+            "give_up_after": {
+              "type": "string",
+              "pattern": "^([1-9]\\d*_(retries|attempts|errors)|[1-9]\\d*(ms|s|min))$",
+              "description": "When to abandon the task. Examples: `2_retries`, `30s`, `1min`. Zero is rejected."
+            },
+            "panic_on": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "enum": [
+                  "english_in_error",
+                  "modal_dialog_unexpected",
+                  "permission_request",
+                  "credit_card_request",
+                  "password_request",
+                  "popup_ad",
+                  "unexpected_redirect"
+                ]
+              },
+              "uniqueItems": true,
+              "description": "Triggers that cause the persona to panic and disengage."
+            },
+            "lexical": {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "description": "Lexical capability suppression. Distinct from top-level `vocabulary` (tone / avoid_terms): `vocabulary` describes how the persona speaks, `lexical` describes what they refuse to understand.",
+              "properties": {
+                "block_jargon": {
+                  "type": "boolean",
+                  "description": "If true, the persona refuses to infer the meaning of jargon and declares it unknown."
+                },
+                "confused_by": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "type": "string" },
+                  "description": "Specific words that confuse the persona on sight."
+                }
+              }
+            },
+            "attention_span": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*(ms|s|min)$",
+              "description": "Concentration limit. Examples: `30s`, `2min`. Zero is rejected."
+            },
+            "reading_speed": {
+              "enum": ["slow", "normal", "fast"],
+              "description": "How fast the persona reads text on screen."
+            },
+            "on_ambiguous_button": {
+              "enum": ["ask_or_skip", "infer_safely", "tap_anyway"],
+              "description": "Strategy when encountering a button with unclear meaning. `ask_or_skip` suppresses LLM inference."
+            },
+            "custom": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string" },
+              "description": "Free-text rules that don't fit the structured primitives."
+            }
+          }
+        }
+      ]
     },
     "evaluation_focus": {
       "type": "array",

@@ -9,7 +9,9 @@
   },
   "scripts": {
     "validate": "node tests/validate-personas.mjs",
-    "aggregate": "node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs"
+    "test": "node tests/test-behavior-rules.mjs && node tests/validate-personas.mjs",
+    "aggregate": "node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs",
+    "render-rules": "node plugins/persona-feedback/skills/persona-tester/scripts/behavior-rules.mjs render"
   },
   "devDependencies": {
     "ajv": "^8.17.1",

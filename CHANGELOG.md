@@ -10,6 +10,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Added (issue #11: structured behavior_rules DSL)
+- **構造化 DSL の `behavior_rules` をスキーマで受理**: 既存の配列（自由文）
+  形式に加え、`give_up_after` / `panic_on` / `lexical.{block_jargon,confused_by}` /
+  `attention_span` / `reading_speed` / `on_ambiguous_button` / `custom` の
+  能力減算プリミティブをオブジェクト形式で書ける。`persona.schema.json` を
+  `oneOf` 対応に拡張。
+- **`scripts/behavior-rules.mjs`**: 構造化 DSL を自然文制約のリストに
+  展開する renderer。CLI として `node behavior-rules.mjs render <persona.yaml>`
+  でも、モジュール `renderBehaviorRules` / `expandStructured` でも呼べる。
+- **同梱ペルソナ `yamada-50s-dsl.yaml`**: 構造化 DSL の使用例。
+  50代・はじめてのオンラインショップ・慎重派。
+- **`persona-tester` SKILL 更新**: 構造化 DSL の場合は `behavior-rules.mjs render`
+  の出力を「守るべき制約」セクションとして runner プロンプトに inject する手順を
+  明文化。runner 側は legacy/DSL のどちらも自然文リストとして受け取り、扱いが
+  分岐しない。**YAML 内の `behavior_rules:` ブロックは展開済みリストで置換**して
+  渡し、DSL の生形式は runner に見せない（独自解釈の余地を残さない）。
+- **`persona-builder` SKILL / persona.template.yaml 更新**: 構造化 DSL の
+  雛形とプリミティブ一覧、および `lexical` と top-level `vocabulary` の役割分担を反映。
+- **`docs/persona-spec.md`**: プリミティブ一覧表、両形式のサンプル、
+  「ペルソナ＝制約セット」という再定義を追記。
+- **`tests/test-behavior-rules.mjs`**: legacy/DSL 双方の renderer ユニット
+  テスト 19 件 + スキーマ拒否ケース 8 件。`npm test` で validate-personas と合わせて走る。
+- **`npm run render-rules <persona.yaml>`**: CLI ショートカット。
+
+#### レビュー反映 (PR #15 → 反映)
+- **DSL 内 `vocabulary` を `lexical` にリネーム**: トップレベル `vocabulary`
+  (tone / avoid_terms = 「どう話すか」) と DSL 内のキー
+  (block_jargon / confused_by = 「何を理解できないか」) の衝突を解消。
+  公開前の破壊変更として吸収。
+- **スキーマで 0 を拒否**: `give_up_after` / `attention_span` のパターンを
+  `[1-9]\d*` ベースに変更。`0_retries` / `0s` などの no-op 値を弾く。
+- **配列プリミティブに `minItems: 1`**: `panic_on` / `lexical.confused_by` /
+  `custom` で空配列の silent no-op を防ぐ。
+- **runner プロンプトの inject ルール明文化**: DSL 形式は YAML から
+  `behavior_rules:` を削除し、展開済みリストで置換する手順を SKILL.md に追記。
+
 ### Added (this iteration)
 - **出力構造の二段分離**: 中間物（スクリーンショット / 生 JSON）を
   隠しディレクトリ `./.persona-feedback/<timestamp>/` に隔離し、最終
