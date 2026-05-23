@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Changed (chore: pin bundled Chromium)
+- **`.mcp.json` に `--browser=chromium` を追加してバンドル版 Chromium に固定**:
+  ホストの Chrome/Chromium に依存せず、Playwright がバージョン管理する Chromium を
+  使うよう明示。WSL / Docker / CI / 新規ユーザー環境で「ホストに Chrome が無くて
+  `Browser chrome-for-testing is not installed` で blocked」になる事故を予防。
+  `--isolated` で context 分離している方針と整合し、再現性を担保する。
+- **初回起動時に Chromium が DL される（〜170MB）** ことを README / getting-started に明記。
+  事前に入れたい場合は `npx playwright install chromium`。
+- 他のブラウザを使いたい場合は `.mcp.json` の `--browser=` を `chrome` / `firefox` /
+  `webkit` / `msedge` に編集してプラグインを再 install する手順も明記。
+
 ### Added (issue #9: UX Regression diff)
 - **`scripts/diff-reports.mjs`**: 2つの aggregate レポート JSON を比較し
   ペルソナ別スコア差分 / outcome 変化 / findings 追加・消失 / 行動メトリクス変化

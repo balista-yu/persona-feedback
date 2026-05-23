@@ -5,6 +5,7 @@
       "args": [
         "@playwright/mcp@0.0.75",
         "--isolated",
+        "--browser=chromium",
         "--output-dir",
         "./.persona-feedback"
       ]
