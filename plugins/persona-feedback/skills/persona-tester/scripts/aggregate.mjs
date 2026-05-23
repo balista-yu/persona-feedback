@@ -16,6 +16,8 @@
 import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve, extname, basename } from 'node:path';
 import { computeMetrics, detectMismatch, renderSectionMarkdown as renderBehaviorMetricsMarkdown } from './behavior-metrics.mjs';
+import { diffReports, renderDiffMarkdown, findPreviousReport } from './diff-reports.mjs';
+import { normalizeLocation } from './normalize-location.mjs';
 
 function parseArgs(argv) {
   const args = { format: 'markdown', feedbacks: [] };
@@ -29,6 +31,8 @@ function parseArgs(argv) {
     }
     else if (a === '--output') args.output = argv[++i];
     else if (a === '--format') args.format = argv[++i];
+    else if (a === '--baseline') args.baseline = argv[++i];
+    else if (a === '--auto-baseline-dir') args.autoBaselineDir = argv[++i];
     else if (a === '--help' || a === '-h') args.help = true;
   }
   return args;
@@ -37,6 +41,7 @@ function parseArgs(argv) {
 function usage() {
   console.log(
     `Usage: aggregate.mjs --feedbacks <path> [<path> ...] --output <file> [--format markdown|json|both]\n` +
+    `                     [--baseline <prev-report.json>] [--auto-baseline-dir <reports-dir>]\n` +
     `\n` +
     `<path> はいずれでも可:\n` +
     `  - 単一の JSON ファイル\n` +
@@ -44,7 +49,11 @@ function usage() {
     `  - "<dir>/*.json" 形式の glob（シェル未展開で渡された場合）\n` +
     `\n` +
     `--feedbacks は複数の値を取れる。例:\n` +
-    `  aggregate.mjs --feedbacks raw/tanaka.json raw/gal.json raw/dev.json --output r.md`
+    `  aggregate.mjs --feedbacks raw/tanaka.json raw/gal.json raw/dev.json --output r.md\n` +
+    `\n` +
+    `--baseline を渡すと「🔁 変更サマリ (UX Regression)」セクションが先頭に挿入される。\n` +
+    `--auto-baseline-dir を渡すと、そのディレクトリから --output と同じファイルを除いた最新の\n` +
+    `  *-report.json を baseline として自動採用する（無ければ baseline なしで続行）。`
   );
 }
 
@@ -104,19 +113,6 @@ function loadFeedback(file) {
 }
 
 const SEVERITY_RANK = { low: 1, medium: 2, high: 3, critical: 4 };
-
-/**
- * location を粗く正規化する。日本語/英語混在、表記揺れに弱いので
- * 完全一致を諦め、目立つ語だけ拾える形にする。
- */
-function normalizeLocation(loc) {
-  if (!loc) return '';
-  return String(loc)
-    .toLowerCase()
-    .replace(/[\s　]+/g, '')
-    .replace(/["'`「」『』]/g, '')
-    .replace(/[、。,;.!?！？:：]/g, '');
-}
 
 /**
  * 不一致分析:
@@ -233,7 +229,7 @@ function formatFindingMd(item) {
   return lines.join('\n');
 }
 
-function toMarkdown(feedbacks, analysis) {
+function toMarkdown(feedbacks, analysis, diffMarkdown) {
   const { personaIds, allAgreement, segmentSpecific, controversial, outcomeCounts } = analysis;
   const target = feedbacks[0]?.target || '(unknown)';
   const task = feedbacks[0]?.task || '(unknown)';
@@ -247,6 +243,11 @@ function toMarkdown(feedbacks, analysis) {
   out.push(`- **personas**: ${personaIds.join(', ')}`);
   out.push(`- **generated**: ${now}`);
   out.push('');
+
+  if (diffMarkdown) {
+    out.push(diffMarkdown);
+    out.push('');
+  }
 
   out.push(`## Outcome 集計`);
   for (const [k, v] of Object.entries(outcomeCounts)) {
@@ -320,7 +321,12 @@ function toMarkdown(feedbacks, analysis) {
   return out.join('\n');
 }
 
-function toJson(feedbacks, analysis) {
+/**
+ * 統合レポートの構造体を構築する（JSON 文字列化はしない）。
+ * diff 計算の input にもなるため、文字列化と分離して round-trip を避ける
+ * （PR #17 レビュー指摘 🟡-3）。
+ */
+function buildReportObject(feedbacks, analysis, diff) {
   const behaviorMetrics = feedbacks.map(fb => {
     const metrics = computeMetrics(fb);
     return {
@@ -329,7 +335,7 @@ function toJson(feedbacks, analysis) {
       mismatch: detectMismatch(fb, metrics),
     };
   });
-  return JSON.stringify({
+  return {
     generated_at: new Date().toISOString(),
     target: feedbacks[0]?.target,
     task: feedbacks[0]?.task,
@@ -339,12 +345,30 @@ function toJson(feedbacks, analysis) {
     segment_specific: analysis.segmentSpecific,
     controversial: analysis.controversial,
     behavior_metrics: behaviorMetrics,
-    raw_feedbacks: feedbacks
-  }, null, 2);
+    ...(diff ? { diff } : {}),
+    raw_feedbacks: feedbacks,
+  };
+}
+
+function toJson(feedbacks, analysis, diff) {
+  return JSON.stringify(buildReportObject(feedbacks, analysis, diff), null, 2);
 }
 
 function ensureDir(filePath) {
   mkdirSync(dirname(filePath), { recursive: true });
+}
+
+function resolveBaselinePath(args) {
+  if (args.baseline) return resolve(args.baseline);
+  if (args.autoBaselineDir) {
+    const outputJsonName = args.output
+      ? basename(args.output).replace(/\.md$/, '.json')
+      : null;
+    const currentPath = outputJsonName ? join(resolve(args.autoBaselineDir), outputJsonName) : null;
+    const found = findPreviousReport(args.autoBaselineDir, currentPath);
+    return found;
+  }
+  return null;
 }
 
 function main() {
@@ -361,8 +385,25 @@ function main() {
   const feedbacks = files.map(loadFeedback);
   const analysis = analyze(feedbacks);
 
+  // baseline 解決 → diff 計算
+  let diff = null;
+  let diffMarkdown = null;
+  const baselinePath = resolveBaselinePath(args);
+  if (baselinePath) {
+    try {
+      const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
+      // 現行 run の構造体を直接組み立てて diff に渡す（round-trip しない）
+      const synthCurrent = buildReportObject(feedbacks, analysis, null);
+      diff = diffReports(baseline, synthCurrent);
+      diffMarkdown = renderDiffMarkdown(diff);
+      console.log(`baseline used: ${baselinePath}`);
+    } catch (e) {
+      console.error(`[warn] baseline read failed (${baselinePath}): ${e.message}. Continuing without diff.`);
+    }
+  }
+
   if (args.format === 'markdown' || args.format === 'both') {
-    const md = toMarkdown(feedbacks, analysis);
+    const md = toMarkdown(feedbacks, analysis, diffMarkdown);
     ensureDir(args.output);
     writeFileSync(args.output, md, 'utf8');
     console.log(`wrote markdown: ${args.output}`);
@@ -371,7 +412,7 @@ function main() {
     const jsonOut = args.format === 'both'
       ? args.output.replace(/\.md$/, '.json')
       : args.output;
-    const j = toJson(feedbacks, analysis);
+    const j = toJson(feedbacks, analysis, diff);
     ensureDir(jsonOut);
     writeFileSync(jsonOut, j, 'utf8');
     console.log(`wrote json: ${jsonOut}`);

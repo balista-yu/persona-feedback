@@ -10,6 +10,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Added (issue #9: UX Regression diff)
+- **`scripts/diff-reports.mjs`**: 2つの aggregate レポート JSON を比較し
+  ペルソナ別スコア差分 / outcome 変化 / findings 追加・消失 / 行動メトリクス変化
+  を抽出する module + CLI。`diffReports` / `renderDiffMarkdown` /
+  `findPreviousReport` をエクスポート。findings マッチは
+  `category + 正規化 location` で誤マージを防ぐ。
+- **aggregate.mjs に `--baseline` / `--auto-baseline-dir` フラグ**: 渡したときに
+  レポート先頭へ `🔁 変更サマリ (UX Regression)` セクションを挿入する。
+  `--auto-baseline-dir ./reports` は同 target / task の繰り返し評価で
+  最新の1つ前を自動採用する推奨運用。
+- **新スキル `diff`**: `/persona-feedback:diff` で任意の2 run を比較。引数なしで
+  `./reports/` 配下の最新2件を自動採用。Markdown / JSON 出力。
+- **persona-tester SKILL の集約フェーズ**: 例示コマンドを
+  `--format both --auto-baseline-dir ./reports` に更新し、Lint としての位置付けを明文化。
+- **`tests/test-diff-reports.mjs`**: 14 件のユニットテスト
+  （スコア / outcome / 追加・消失・継続 / location 表記揺れ / target・task mismatch /
+  metrics / Markdown / findPreviousReport）。
+- **`npm run diff <args>`**: CLI ショートカット。
+
+#### レビュー反映 (PR #17 → 反映)
+- **`scripts/normalize-location.mjs` を共通モジュール化**: aggregate.mjs と
+  diff-reports.mjs で重複していた `normalizeLocation` を抽出。
+  カバレッジを拡大し、**全角・半角括弧** (`（）` / `()` / `[]` / `【】`)、
+  **中黒** (`・` / `･`)、**ハイフン類** (半角 / en/em dash / 長音符 `ー`) を新たに strip 対象に。
+- **target / task mismatch ガード**: `diffReports` の戻り値に `warnings` フィールドを追加し、
+  違う URL / タスクを baseline に指定したら `target_mismatch` / `task_mismatch` を出す。
+  `renderDiffMarkdown` でレポート冒頭に `### ⚠️ 警告` セクションとして表示。
+  `--auto-baseline-dir` 自動採用時に誤った baseline を silent で使う事故を防ぐ。
+- **`--reports-dir` モードで 2 件未満なら warn skip (exit 0)**: 初回実行直後に
+  `/persona-feedback:diff` を呼んでも CI を落とさない。`--auto-baseline-dir`
+  （null returned → silent skip）と挙動を揃える。
+- **`synthCurrent` round-trip 解消**: `buildReportObject()` を切り出し、
+  diff 用の擬似 report を JSON.stringify → parse せず直接構築。
+  `computeMetrics` の二重計算もなくなる。
+- **`tests/test-normalize-location.mjs`**: 共通モジュールの 9 件ユニットテスト。
+
 ### Added (issue #13: behavior_metrics)
 - **`action_log` フィールド**: feedback.schema.json に追加。persona-runner が
   各 MCP ツール呼び出し（navigate / snapshot / click / type / select / press_key /

@@ -9,9 +9,10 @@
   },
   "scripts": {
     "validate": "node tests/validate-personas.mjs",
-    "test": "node tests/test-behavior-rules.mjs && node tests/test-behavior-metrics.mjs && node tests/validate-personas.mjs",
+    "test": "node tests/test-normalize-location.mjs && node tests/test-behavior-rules.mjs && node tests/test-behavior-metrics.mjs && node tests/test-diff-reports.mjs && node tests/validate-personas.mjs",
     "aggregate": "node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs",
-    "render-rules": "node plugins/persona-feedback/skills/persona-tester/scripts/behavior-rules.mjs render"
+    "render-rules": "node plugins/persona-feedback/skills/persona-tester/scripts/behavior-rules.mjs render",
+    "diff": "node plugins/persona-feedback/skills/persona-tester/scripts/diff-reports.mjs"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
