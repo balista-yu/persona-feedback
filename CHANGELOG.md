@@ -10,6 +10,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Added (issue #13: behavior_metrics)
+- **`action_log` フィールド**: feedback.schema.json に追加。persona-runner が
+  各 MCP ツール呼び出し（navigate / snapshot / click / type / select / press_key /
+  scroll / back / cancel / screenshot / give_up / wait）の前後で時刻付きエントリ
+  を記録する。
+- **`scripts/behavior-metrics.mjs`**: action_log から hesitation_seconds (snapshot →
+  次の意味ある操作までの秒数) / scroll_back_and_forth / back_or_cancel_count /
+  time_on_screen_seconds を計算する module。`computeMetrics` / `detectMismatch` /
+  `renderSectionMarkdown` をエクスポート。
+- **言葉と行動の食い違い検出**: overall ≥ 7 または outcome=completed のときに
+  hesitation_mean ≥ 5s / back_or_cancel ≥ 3 / scroll_back_and_forth ≥ 4 のいずれかが
+  成立すると赤フラグ。AI ペルソナが「分かりやすかった」と言いつつ実は迷っていた
+  ケースを拾う。
+- **aggregate.mjs 拡張**: 統合レポートに `## 🧭 行動メトリクス` セクションを追加。
+  Markdown では表 + 食い違いフラグ + 折りたたみで時刻別滞在時間、JSON では
+  `behavior_metrics[]` キーで永続化。
+- **persona-runner.md 更新**: action_log 記録を必須責務として明文化。出力 JSON 例
+  にも action_log を含めた。
+- **`examples/runs/sample-run-behavior-metrics/`**: 「完走したのに迷ってる」
+  ケースを示すサンプル。tanaka-60s が overall=8 で食い違いフラグが立つ。
+- **`tests/test-behavior-metrics.mjs`**: hesitation / scroll / back・cancel /
+  time_on_screen / mismatch 検出 / Markdown レンダリングのユニットテスト 16 件。
+
+#### レビュー反映 (PR #16 → 反映)
+- **PR #15 と `package.json` の test 行を統合**: `test-behavior-rules.mjs` →
+  `test-behavior-metrics.mjs` → `validate-personas.mjs` の順でチェーン。
+- **mismatch メッセージを `positive` / `completed` で分岐**: `outcome=completed && overall<7`
+  のケースで「好評価」と誤表示する齟齬を解消。「言葉では好評価」「言葉では好評価かつ完走」
+  「完走したのに」の3パターンを出し分け。
+- **mismatch しきい値を const 化**: `MISMATCH_OVERALL_POSITIVE=7` /
+  `MISMATCH_HESITATION_SECONDS=5` / `MISMATCH_BACK_OR_CANCEL=3` /
+  `MISMATCH_SCROLL_BACK=4` を module top に集約。将来 ENV/設定で上書きしやすい構造に。
+- **`time_on_screen` 最終画面の終了時刻に `feedback.duration_seconds` を採用**:
+  完走後に結果ページを眺めている時間が0扱いになる問題を解消。`duration_seconds` が
+  末尾 entry より小さい場合は無視（fallback）。
+- **`navigate` を `MEANINGFUL_ACTIONS` に追加**: `snapshot → URL ジャンプ`時に
+  pendingSnapshotAt がリセットされず後続 click まで hesitation が膨らむ問題を回避。
+  `wait` / `screenshot` / `give_up` は意図的に除外（コメント明記）。
+- **`UNKNOWN_LOCATION` を module-level const に**: マジック文字列を排除。
+
 ### Added (issue #11: structured behavior_rules DSL)
 - **構造化 DSL の `behavior_rules` をスキーマで受理**: 既存の配列（自由文）
   形式に加え、`give_up_after` / `panic_on` / `lexical.{block_jargon,confused_by}` /

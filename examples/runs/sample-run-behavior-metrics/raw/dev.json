@@ -1,0 +1,24 @@
+{
+  "persona_id": "dev-engineer",
+  "target": "http://localhost:3000/signup",
+  "task": "新規登録",
+  "started_at": "2026-05-23T10:00:00Z",
+  "duration_seconds": 42.0,
+  "outcome": "completed",
+  "narrative": "問題なく登録完了。バリデーションは妥当。",
+  "findings": [],
+  "score": {
+    "overall": 8.5,
+    "would_recommend": true
+  },
+  "action_log": [
+    { "at_seconds": 0,  "action": "navigate", "location": "/signup" },
+    { "at_seconds": 1,  "action": "snapshot", "location": "/signup" },
+    { "at_seconds": 2,  "action": "click",    "location": "/signup", "target_desc": "メアド欄" },
+    { "at_seconds": 3,  "action": "type",     "location": "/signup" },
+    { "at_seconds": 5,  "action": "click",    "location": "/signup", "target_desc": "次へ" },
+    { "at_seconds": 6,  "action": "navigate", "location": "/signup/profile" },
+    { "at_seconds": 20, "action": "click",    "location": "/signup/profile", "target_desc": "登録する" },
+    { "at_seconds": 25, "action": "navigate", "location": "/signup/complete" }
+  ]
+}

@@ -82,8 +82,23 @@ target URL を操作し、構造化フィードバックを返す。
    - quote: ペルソナの一人称の声（例: "字が小さすぎて読めないよ…"）
    - screenshot: 該当スクリーンショットのファイル名（あれば）
    - suggestion: ペルソナ視点の改善提案（任意）
-8. タスク完了 / 諦め / エラーで終了
-9. feedback.schema.json に準拠した JSON を最終出力する
+8. **`action_log` に操作トレースを記録する（必須）**:
+   各 MCP ツール呼び出し（navigate / snapshot / click / type / select / press_key /
+   scroll / back / cancel / screenshot / wait）の前後で1エントリ追加。
+   - `at_seconds`: started_at からの経過秒数（小数可）
+   - `action`: 上記 enum のいずれか
+   - `target_desc`: 操作対象の人間可読な説明（"メアド欄", "送信ボタン" 等）
+   - `location`: 現在の URL（または論理画面名）。これが滞在時間計算の単位になる
+   - `note`: 任意。「迷った」「読み返した」等の自己観察
+
+   この trace は集約側で「言語化以前の戸惑い」の擬似計測に使う（snapshot →
+   次の click までの逡巡時間、画面ごとの滞在時間、back/cancel 頻度など）。
+   **記録を省略すると行動メトリクスが空になり、言葉と行動の食い違い検出が
+   無効化される。** ペルソナが「分かりやすかった」と言いつつ実は迷っていた
+   ケースを拾うための核心データなので、面倒でも必ず埋めること。
+
+9. タスク完了 / 諦め / エラーで終了
+10. feedback.schema.json に準拠した JSON を最終出力する
 
 # 出力形式
 
@@ -112,7 +127,14 @@ target URL を操作し、構造化フィードバックを返す。
   "score": {
     "overall": 3.0,
     "would_recommend": false
-  }
+  },
+  "action_log": [
+    { "at_seconds": 0,   "action": "navigate", "location": "http://localhost:3000", "target_desc": "トップへ" },
+    { "at_seconds": 1,   "action": "snapshot", "location": "http://localhost:3000" },
+    { "at_seconds": 12,  "action": "click",    "location": "http://localhost:3000", "target_desc": "アップロードボタン", "note": "意味が分からず迷った" },
+    { "at_seconds": 14,  "action": "back",     "location": "http://localhost:3000", "note": "怖くなって戻った" },
+    { "at_seconds": 30,  "action": "give_up",  "location": "http://localhost:3000" }
+  ]
 }
 ```
 

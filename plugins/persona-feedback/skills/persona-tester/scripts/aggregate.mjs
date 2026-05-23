@@ -15,6 +15,7 @@
 
 import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve, extname, basename } from 'node:path';
+import { computeMetrics, detectMismatch, renderSectionMarkdown as renderBehaviorMetricsMarkdown } from './behavior-metrics.mjs';
 
 function parseArgs(argv) {
   const args = { format: 'markdown', feedbacks: [] };
@@ -301,6 +302,9 @@ function toMarkdown(feedbacks, analysis) {
   }
   out.push('');
 
+  // 行動メトリクス（言語化以前の戸惑いの擬似計測）
+  out.push(renderBehaviorMetricsMarkdown(feedbacks));
+
   out.push(`## 🗣 各ペルソナのナレーション`);
   for (const f of feedbacks) {
     out.push(`### ${f.persona_id} — ${f.outcome}`);
@@ -317,6 +321,14 @@ function toMarkdown(feedbacks, analysis) {
 }
 
 function toJson(feedbacks, analysis) {
+  const behaviorMetrics = feedbacks.map(fb => {
+    const metrics = computeMetrics(fb);
+    return {
+      persona_id: fb.persona_id,
+      metrics,
+      mismatch: detectMismatch(fb, metrics),
+    };
+  });
   return JSON.stringify({
     generated_at: new Date().toISOString(),
     target: feedbacks[0]?.target,
@@ -326,6 +338,7 @@ function toJson(feedbacks, analysis) {
     all_agreement: analysis.allAgreement,
     segment_specific: analysis.segmentSpecific,
     controversial: analysis.controversial,
+    behavior_metrics: behaviorMetrics,
     raw_feedbacks: feedbacks
   }, null, 2);
 }

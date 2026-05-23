@@ -1,0 +1,42 @@
+{
+  "persona_id": "tanaka-60s",
+  "target": "http://localhost:3000/signup",
+  "task": "新規登録",
+  "started_at": "2026-05-23T10:00:00Z",
+  "duration_seconds": 96.0,
+  "outcome": "completed",
+  "narrative": "全体的に分かりやすかった。ちゃんと登録できた。",
+  "findings": [
+    {
+      "category": "usability",
+      "severity": "low",
+      "location": "/signup",
+      "description": "フォームの「次へ」ボタンの位置が固定されておらず、スクロールが必要だった",
+      "quote": "ボタンどこ？"
+    }
+  ],
+  "score": {
+    "overall": 8.0,
+    "would_recommend": true
+  },
+  "action_log": [
+    { "at_seconds": 0,  "action": "navigate", "location": "/signup", "target_desc": "http://localhost:3000/signup" },
+    { "at_seconds": 1,  "action": "snapshot", "location": "/signup" },
+    { "at_seconds": 9,  "action": "click",    "location": "/signup", "target_desc": "メアド欄" },
+    { "at_seconds": 10, "action": "type",     "location": "/signup", "target_desc": "メアド欄" },
+    { "at_seconds": 15, "action": "snapshot", "location": "/signup" },
+    { "at_seconds": 23, "action": "scroll",   "location": "/signup" },
+    { "at_seconds": 24, "action": "scroll",   "location": "/signup" },
+    { "at_seconds": 25, "action": "scroll",   "location": "/signup" },
+    { "at_seconds": 26, "action": "scroll",   "location": "/signup" },
+    { "at_seconds": 30, "action": "click",    "location": "/signup", "target_desc": "次へ" },
+    { "at_seconds": 31, "action": "navigate", "location": "/signup/profile" },
+    { "at_seconds": 32, "action": "snapshot", "location": "/signup/profile" },
+    { "at_seconds": 45, "action": "back",     "location": "/signup/profile", "note": "フォームを誤入力した気がして戻った" },
+    { "at_seconds": 46, "action": "navigate", "location": "/signup" },
+    { "at_seconds": 60, "action": "click",    "location": "/signup", "target_desc": "次へ" },
+    { "at_seconds": 61, "action": "navigate", "location": "/signup/profile" },
+    { "at_seconds": 90, "action": "click",    "location": "/signup/profile", "target_desc": "登録する" },
+    { "at_seconds": 95, "action": "navigate", "location": "/signup/complete" }
+  ]
+}
