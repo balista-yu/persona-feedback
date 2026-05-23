@@ -12,6 +12,25 @@ Claude Code 内で以下を実行:
 インストール時に Playwright MCP サーバーが起動する。
 Node.js 24 が必要。
 
+#### 初回のみ: Chromium のインストール（〜170MB）
+
+最初に `persona-tester` を実行すると、Playwright がバンドル版 Chromium を
+ダウンロードする（約 170MB、数十秒〜数分）。ホストの Chrome/Chromium ではなく
+Playwright がバージョン管理する Chromium を使うことで、環境差による findings の
+ブレを防ぐ。
+
+事前にダウンロードしておきたい場合:
+
+```bash
+npx playwright install chromium
+```
+
+別のブラウザを使いたい場合は `.mcp.json` の `--browser=chromium` を
+`chrome` / `firefox` / `webkit` / `msedge` のいずれかに編集してから、
+そのブラウザを `npx playwright install <name>` で入れる。
+プラグインを `/plugin install` で入れ直すと `.mcp.json` の編集が
+`~/.claude/plugins/cache/` 配下にも反映される。
+
 ### 初回のみ: permission allowlist 追加
 
 サブエージェントはバックグラウンドで動くため permission prompt を承認できない。
