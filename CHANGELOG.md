@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Added (issue #9: UX Regression diff)
+- **`scripts/diff-reports.mjs`**: 2つの aggregate レポート JSON を比較し
+  ペルソナ別スコア差分 / outcome 変化 / findings 追加・消失 / 行動メトリクス変化
+  を抽出する module + CLI。`diffReports` / `renderDiffMarkdown` /
+  `findPreviousReport` をエクスポート。findings マッチは
+  `category + 正規化 location` で誤マージを防ぐ。
+- **aggregate.mjs に `--baseline` / `--auto-baseline-dir` フラグ**: 渡したときに
+  レポート先頭へ `🔁 変更サマリ (UX Regression)` セクションを挿入する。
+  `--auto-baseline-dir ./reports` は同 target / task の繰り返し評価で
+  最新の1つ前を自動採用する推奨運用。
+- **新スキル `diff`**: `/persona-feedback:diff` で任意の2 run を比較。引数なしで
+  `./reports/` 配下の最新2件を自動採用。Markdown / JSON 出力。
+- **persona-tester SKILL の集約フェーズ**: 例示コマンドを
+  `--format both --auto-baseline-dir ./reports` に更新し、Lint としての位置付けを明文化。
+- **`tests/test-diff-reports.mjs`**: 10 件のユニットテスト
+  （スコア / outcome / 追加・消失・継続 / location 表記揺れ / metrics / Markdown / findPreviousReport）。
+- **`npm run diff <args>`**: CLI ショートカット。
+
 ### Added (issue #13: behavior_metrics)
 - **`action_log` フィールド**: feedback.schema.json に追加。persona-runner が
   各 MCP ツール呼び出し（navigate / snapshot / click / type / select / press_key /

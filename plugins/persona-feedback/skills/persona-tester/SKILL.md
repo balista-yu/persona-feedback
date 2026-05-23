@@ -224,6 +224,11 @@ persona-runner 側には **Write 権限を渡さない**。サブエージェン
 
 `scripts/aggregate.mjs` に raw ディレクトリを渡して統合レポートを生成する:
 
+- **🔁 変更サマリ (UX Regression)**: `--auto-baseline-dir ./reports` を渡したときに
+  `./reports/` 配下の最新の1つ前の `*-report.json` を baseline として自動採用し、
+  ペルソナ別スコア変化 / outcome 変化 / findings 追加・消失 / 行動メトリクス変化を
+  レポート先頭に挿入。`persona-feedback` を「UX における Lint」として継続観測する
+  ための核心セクション。同じ target / task を繰り返し評価する運用で効く。
 - **all-agreement (critical)**: 全員が指摘した問題
 - **segment-specific**: 特定ペルソナだけが詰まった箇所
 - **controversial**: ペルソナ間で評価が割れた要素
@@ -241,13 +246,19 @@ persona-runner 側には **Write 権限を渡さない**。サブエージェン
 node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
   --feedbacks .persona-feedback/<timestamp>/raw \
   --output reports/<timestamp>-report.md \
-  --format markdown
+  --format both \
+  --auto-baseline-dir ./reports
 ```
 
 入力（中間物）は隠しディレクトリ `.persona-feedback/`、
 出力（最終レポート）は可視ディレクトリ `reports/` という分離。
 
 `--format json` で JSON 出力。`--format both` で両方を生成する。
+
+`--auto-baseline-dir ./reports` は変更サマリ自動挿入の推奨設定。明示的に
+baseline を指定したいときは `--baseline <path>` を使う。任意の2 run を比較
+するだけなら独立スキル `/persona-feedback:diff` で `diff-reports.mjs` を直接
+呼ぶこともできる。
 
 ## 出力先
 
