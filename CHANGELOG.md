@@ -31,7 +31,24 @@ MCP ツール名バグの修正。リリース版に切るタイミングで [0.
 - **`examples/runs/sample-run-behavior-metrics/`**: 「完走したのに迷ってる」
   ケースを示すサンプル。tanaka-60s が overall=8 で食い違いフラグが立つ。
 - **`tests/test-behavior-metrics.mjs`**: hesitation / scroll / back・cancel /
-  time_on_screen / mismatch 検出 / Markdown レンダリングのユニットテスト 12 件。
+  time_on_screen / mismatch 検出 / Markdown レンダリングのユニットテスト 16 件。
+
+#### レビュー反映 (PR #16 → 反映)
+- **PR #15 と `package.json` の test 行を統合**: `test-behavior-rules.mjs` →
+  `test-behavior-metrics.mjs` → `validate-personas.mjs` の順でチェーン。
+- **mismatch メッセージを `positive` / `completed` で分岐**: `outcome=completed && overall<7`
+  のケースで「好評価」と誤表示する齟齬を解消。「言葉では好評価」「言葉では好評価かつ完走」
+  「完走したのに」の3パターンを出し分け。
+- **mismatch しきい値を const 化**: `MISMATCH_OVERALL_POSITIVE=7` /
+  `MISMATCH_HESITATION_SECONDS=5` / `MISMATCH_BACK_OR_CANCEL=3` /
+  `MISMATCH_SCROLL_BACK=4` を module top に集約。将来 ENV/設定で上書きしやすい構造に。
+- **`time_on_screen` 最終画面の終了時刻に `feedback.duration_seconds` を採用**:
+  完走後に結果ページを眺めている時間が0扱いになる問題を解消。`duration_seconds` が
+  末尾 entry より小さい場合は無視（fallback）。
+- **`navigate` を `MEANINGFUL_ACTIONS` に追加**: `snapshot → URL ジャンプ`時に
+  pendingSnapshotAt がリセットされず後続 click まで hesitation が膨らむ問題を回避。
+  `wait` / `screenshot` / `give_up` は意図的に除外（コメント明記）。
+- **`UNKNOWN_LOCATION` を module-level const に**: マジック文字列を排除。
 
 ### Added (issue #11: structured behavior_rules DSL)
 - **構造化 DSL の `behavior_rules` をスキーマで受理**: 既存の配列（自由文）

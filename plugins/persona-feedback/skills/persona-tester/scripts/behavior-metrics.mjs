@@ -28,10 +28,23 @@
  */
 
 const HESITATION_TRIGGERS = new Set(['snapshot']);
+// MEANINGFUL_ACTIONS = snapshot 後の hesitation を「終わらせる」操作。
+// navigate も含めるのは、snapshot → URL 直接ジャンプの場合に pendingSnapshotAt が
+// リセットされないまま後続 click を待つと hesitation が膨らんでしまうため。
+// wait / screenshot / give_up は「考えている時間の延長」とみなして除外
+// （wait は明示的待機、screenshot は記録目的、give_up はタスク終了）。
 const MEANINGFUL_ACTIONS = new Set([
-  'click', 'type', 'select', 'press_key', 'scroll', 'back', 'cancel'
+  'click', 'type', 'select', 'press_key', 'scroll', 'back', 'cancel', 'navigate'
 ]);
 const BACK_OR_CANCEL = new Set(['back', 'cancel']);
+
+// mismatch 検出のしきい値。将来 ENV / 設定で上書きしたくなったらここを変える。
+const MISMATCH_OVERALL_POSITIVE = 7;       // overall >= これで「好評価」扱い
+const MISMATCH_HESITATION_SECONDS = 5;     // hesitation_mean >= これで赤フラグ
+const MISMATCH_BACK_OR_CANCEL = 3;         // back/cancel >= これで赤フラグ
+const MISMATCH_SCROLL_BACK = 4;            // scroll_back_and_forth >= これで赤フラグ
+
+const UNKNOWN_LOCATION = '(unknown)';
 
 /**
  * action_log の整合性を軽くチェックして、不正なエントリは捨てる。
@@ -92,12 +105,14 @@ function computeBackOrCancelCount(log) {
 
 /**
  * 画面ごとの滞在時間。location 遷移までの差分を集計。
- * 最後の画面は action_log 末尾の at_seconds が終了時刻と仮定。
+ * 最後の画面の終了時刻は feedback.duration_seconds（あれば）、なければ
+ * action_log 末尾の at_seconds を使う。duration_seconds を使うと、完走後に
+ * 結果ページを眺めている時間も最終画面に計上できる。
  */
-function computeTimeOnScreen(log) {
+function computeTimeOnScreen(log, endSeconds = null) {
   const totals = new Map();
   if (log.length === 0) return {};
-  let currentLoc = log[0].location || '(unknown)';
+  let currentLoc = log[0].location || UNKNOWN_LOCATION;
   let segmentStart = log[0].at_seconds;
   for (let i = 1; i < log.length; i++) {
     const loc = log[i].location || currentLoc;
@@ -107,7 +122,11 @@ function computeTimeOnScreen(log) {
       segmentStart = log[i].at_seconds;
     }
   }
-  totals.set(currentLoc, (totals.get(currentLoc) || 0) + (log[log.length - 1].at_seconds - segmentStart));
+  const lastEntryAt = log[log.length - 1].at_seconds;
+  const finalEnd = (typeof endSeconds === 'number' && endSeconds >= lastEntryAt)
+    ? endSeconds
+    : lastEntryAt;
+  totals.set(currentLoc, (totals.get(currentLoc) || 0) + (finalEnd - segmentStart));
   const out = {};
   for (const [k, v] of totals.entries()) out[k] = Number(v.toFixed(2));
   return out;
@@ -128,7 +147,7 @@ export function computeMetrics(feedback) {
     hesitation_seconds_max: hesitations.length > 0 ? Number(Math.max(...hesitations).toFixed(2)) : null,
     scroll_back_and_forth: computeScrollBackAndForth(log),
     back_or_cancel_count: computeBackOrCancelCount(log),
-    time_on_screen_seconds: computeTimeOnScreen(log),
+    time_on_screen_seconds: computeTimeOnScreen(log, feedback.duration_seconds ?? null),
   };
 }
 
@@ -136,21 +155,29 @@ export function computeMetrics(feedback) {
  * 言語フィードバックと行動メトリクスの食い違いを検出する。
  * 「好評価なのに迷ってる」「諦めてないのに頻繁に戻ってる」を赤フラグにする。
  * 食い違いが無い場合は null を返す。
+ *
+ * メッセージは positive (好評価) と completed (完走) を分けて表記し、
+ * `completed && overall=2` のケースで「好評価」と誤表示しないようにする。
  */
 export function detectMismatch(feedback, metrics) {
   const reasons = [];
   const overall = feedback.score?.overall;
-  const positive = typeof overall === 'number' && overall >= 7;
+  const positive = typeof overall === 'number' && overall >= MISMATCH_OVERALL_POSITIVE;
   const completed = feedback.outcome === 'completed';
 
-  if ((positive || completed) && metrics.hesitation_seconds_mean !== null && metrics.hesitation_seconds_mean >= 5) {
-    reasons.push(`hesitation_seconds_mean=${metrics.hesitation_seconds_mean}s (>= 5s): 言葉では好評価／完走だが、画面を読んで次の操作を決めるまでに時間がかかっている`);
+  const condLabel = positive
+    ? (completed ? '言葉では好評価かつ完走' : '言葉では好評価')
+    : (completed ? '完走したのに' : '');
+  if (!condLabel) return null;
+
+  if (metrics.hesitation_seconds_mean !== null && metrics.hesitation_seconds_mean >= MISMATCH_HESITATION_SECONDS) {
+    reasons.push(`hesitation_seconds_mean=${metrics.hesitation_seconds_mean}s (>= ${MISMATCH_HESITATION_SECONDS}s): ${condLabel}、画面を読んで次の操作を決めるまでに時間がかかっている`);
   }
-  if ((positive || completed) && metrics.back_or_cancel_count >= 3) {
-    reasons.push(`back_or_cancel_count=${metrics.back_or_cancel_count} (>= 3): 言葉では好評価／完走だが、戻る/キャンセル操作が多い`);
+  if (metrics.back_or_cancel_count >= MISMATCH_BACK_OR_CANCEL) {
+    reasons.push(`back_or_cancel_count=${metrics.back_or_cancel_count} (>= ${MISMATCH_BACK_OR_CANCEL}): ${condLabel}、戻る/キャンセル操作が多い`);
   }
-  if ((positive || completed) && metrics.scroll_back_and_forth >= 4) {
-    reasons.push(`scroll_back_and_forth=${metrics.scroll_back_and_forth} (>= 4): 言葉では好評価／完走だが、画面内でスクロールを往復している`);
+  if (metrics.scroll_back_and_forth >= MISMATCH_SCROLL_BACK) {
+    reasons.push(`scroll_back_and_forth=${metrics.scroll_back_and_forth} (>= ${MISMATCH_SCROLL_BACK}): ${condLabel}、画面内でスクロールを往復している`);
   }
 
   if (reasons.length === 0) return null;
@@ -215,7 +242,7 @@ export function renderSectionMarkdown(feedbacks) {
     if (entries.length === 0) {
       lines.push('(画面遷移なし)');
     } else {
-      for (const [loc, sec] of entries) lines.push(`- ${loc || '(unknown)'}: ${sec}s`);
+      for (const [loc, sec] of entries) lines.push(`- ${loc || UNKNOWN_LOCATION}: ${sec}s`);
     }
     lines.push('');
   }
