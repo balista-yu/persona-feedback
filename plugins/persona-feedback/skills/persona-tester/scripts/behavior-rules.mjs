@@ -17,7 +17,7 @@
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parse as parseYaml } from 'yaml';
+import { parse as parseYaml } from '../../../vendor/yaml.mjs';
 
 const PANIC_ON_TEMPLATES = {
   english_in_error: '英語のエラーメッセージが出たらパニックになり、操作を止めて離脱を検討する',

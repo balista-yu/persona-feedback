@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Fixed (issue #20: 導入直後にスクリプトが落ちる)
+- **`yaml` をプラグインに同梱**: プラグインのキャッシュには `node_modules` が無く、
+  `list-personas.mjs` / `behavior-rules.mjs` が `ERR_MODULE_NOT_FOUND` で落ちていた。
+  `vendor/yaml.mjs` に単一ファイルでバンドルして相対 import する
+  （再生成は `npm run vendor:yaml`）。CI で `npm install` 前に両スクリプトを実行して検知する。
+- **SKILL.md のスクリプト呼び出しを `${CLAUDE_PLUGIN_ROOT}` 基準に統一**: リポジトリ相対の
+  パスで書かれていたため、利用側プロジェクトから実行すると見つからなかった。
+
 ### Fixed (issue #22: ドキュメントの記述ずれ)
 - **`.gitignore` 済みという記述を訂正**: プラグインは利用側リポジトリの
   `.gitignore` を変更できないため、利用側で追加するよう README / SKILL.md で案内する。

@@ -16,6 +16,13 @@ jobs:
           node-version: "24"
           cache: "npm"
 
+      # プラグインは node_modules 無しで配布されるので、npm install 前に動くことを確かめる
+      - name: Plugin scripts run without node_modules
+        run: |
+          node plugins/persona-feedback/scripts/list-personas.mjs --json > /dev/null
+          node plugins/persona-feedback/skills/persona-tester/scripts/behavior-rules.mjs \
+            render plugins/persona-feedback/personas/yamada-50s-dsl.yaml > /dev/null
+
       - name: Install deps
         run: npm install --no-audit --no-fund
 
