@@ -107,7 +107,8 @@ http://localhost:3000 を tanaka-60s と gal-20s でテストして
 - 各ペルソナ YAML をロードし、`schemas/persona.schema.json` でスキーマ検証する
 - 検証失敗のペルソナはエラーを表示し、ユーザーに修正を促す
 - `behavior_rules` が構造化 DSL（オブジェクト型）の場合は
-  `scripts/behavior-rules.mjs render <persona.yaml>` で自然文制約のリストに展開しておく。
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/persona-tester/scripts/behavior-rules.mjs" render <persona.yaml>`
+  で自然文制約のリストに展開しておく。
   legacy の配列型はそのまま使う。
 - target URL に Playwright で先にアクセスし、到達可能か確認
 - ペルソナ数が `max_parallel` を超える場合、コスト警告を出してユーザーに確認
@@ -192,7 +193,7 @@ runner が DSL を独自解釈し直す誘惑を残さないため、**YAML 内�
 ペルソナごとに1回呼ぶだけ**でよい:
 
 ```
-node plugins/persona-feedback/skills/persona-tester/scripts/save-raw.mjs \
+node "${CLAUDE_PLUGIN_ROOT}/skills/persona-tester/scripts/save-raw.mjs" \
   --persona-id <persona_id> \
   --timestamp <timestamp> \
   --raw-file <persona-runner の戻り値を書き出した一時ファイル> \
@@ -243,7 +244,7 @@ persona-runner 側には **Write 権限を渡さない**。サブエージェン
 ## 集約スクリプトの呼び出し
 
 ```
-node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
+node "${CLAUDE_PLUGIN_ROOT}/skills/persona-tester/scripts/aggregate.mjs" \
   --feedbacks .persona-feedback/<timestamp>/raw \
   --output reports/<timestamp>-report.md \
   --format both \
