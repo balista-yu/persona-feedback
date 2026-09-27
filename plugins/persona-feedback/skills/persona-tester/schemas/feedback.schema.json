@@ -27,9 +27,17 @@
             "enum": ["usability", "bug", "accessibility", "copywriting", "performance", "trust"]
           },
           "severity": { "enum": ["low", "medium", "high", "critical"] },
+          "page": {
+            "type": "string",
+            "description": "指摘した画面の URL またはパス（例: '/products/new'）。aggregate は page 単位で同じ問題を束ねる"
+          },
+          "element": {
+            "type": "string",
+            "description": "画面上の UI 要素名。画面に表示されている文言で書く（例: '「スキップ」ボタン'）"
+          },
           "location": {
             "type": "string",
-            "description": "URL or DOM selector / region"
+            "description": "自由文の場所の説明。page / element で表せない補足に使う"
           },
           "description": { "type": "string" },
           "quote": {

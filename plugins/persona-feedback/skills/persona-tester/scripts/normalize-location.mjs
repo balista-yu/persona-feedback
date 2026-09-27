@@ -30,3 +30,32 @@ export function normalizeLocation(loc) {
     .replace(/[・･]/g, '')
     .replace(/[-‐–—−ー]/g, '');
 }
+
+/**
+ * finding の `page`（URL またはパス）を画面単位のキーに正規化する。
+ * オリジン・クエリ・フラグメント・末尾スラッシュを落とし、小文字化する。
+ *
+ * 例:
+ *   "http://localhost:3000/products/new/?tab=1#top" → "/products/new"
+ *   "/Products/New/" → "/products/new"
+ */
+export function normalizePage(page) {
+  if (!page) return '';
+  let p = String(page).trim();
+  const m = p.match(/^[a-z][a-z0-9+.-]*:\/\/[^/?#]*(.*)$/i);
+  if (m) p = m[1];
+  p = p.replace(/[?#].*$/, '').replace(/\/+$/, '').toLowerCase();
+  if (!p.startsWith('/')) p = `/${p}`;
+  return p;
+}
+
+/**
+ * finding の場所キー。`page` があれば「page + element」、無ければ自由文の
+ * `location` を使う（page 導入前のフィードバックとの後方互換）。
+ */
+export function locationKey(find) {
+  if (find && find.page) {
+    return `${normalizePage(find.page)}#${normalizeLocation(find.element)}`;
+  }
+  return normalizeLocation(find?.location);
+}

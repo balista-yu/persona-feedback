@@ -5,7 +5,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { normalizeLocation } from '../plugins/persona-feedback/skills/persona-tester/scripts/normalize-location.mjs';
+import { normalizeLocation, normalizePage, locationKey } from '../plugins/persona-feedback/skills/persona-tester/scripts/normalize-location.mjs';
 
 let failed = 0;
 function test(name, fn) {
@@ -69,6 +69,39 @@ test('組み合わせ: 引用符 + 全角空白 + 句読点 + 括弧', () => {
   const a = normalizeLocation('「送信」ボタン　（フォーム下部）');
   const b = normalizeLocation('送信ボタン フォーム下部');
   assert.equal(a, b);
+});
+
+console.log('## normalizePage');
+
+test('null / undefined / 空文字は空文字に', () => {
+  assert.equal(normalizePage(null), '');
+  assert.equal(normalizePage(''), '');
+});
+
+test('オリジン・クエリ・フラグメント・末尾スラッシュを落とす', () => {
+  assert.equal(normalizePage('http://localhost:3000/products/new/?tab=1#top'), '/products/new');
+  assert.equal(normalizePage('https://example.com/a/b#x'), '/a/b');
+});
+
+test('URL とパスの書き方の違いを吸収する', () => {
+  assert.equal(normalizePage('http://x.test/Products/New/'), normalizePage('/products/new'));
+  assert.equal(normalizePage('products/new'), '/products/new');
+});
+
+test('ルートは "/" 相当にそろう', () => {
+  assert.equal(normalizePage('http://x.test/'), normalizePage('http://x.test'));
+});
+
+console.log('## locationKey');
+
+test('page があれば page + element をキーにする', () => {
+  const a = locationKey({ page: 'http://x.test/new/', element: '「スキップ」ボタン', location: '保存後のダイアログ' });
+  const b = locationKey({ page: '/new', element: 'スキップ ボタン', location: '完了ダイアログ' });
+  assert.equal(a, b);
+});
+
+test('page が無ければ正規化した location をキーにする（後方互換）', () => {
+  assert.equal(locationKey({ location: '「送信」ボタン' }), '送信ボタン');
 });
 
 if (failed > 0) {
