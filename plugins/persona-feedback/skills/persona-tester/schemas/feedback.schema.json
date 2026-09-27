@@ -8,8 +8,30 @@
     "persona_id": { "type": "string" },
     "target": { "type": "string", "format": "uri" },
     "task": { "type": "string" },
-    "started_at": { "type": "string", "format": "date-time" },
-    "duration_seconds": { "type": "number", "minimum": 0 },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Wall-clock time of the first CLI command, written by apply-trace-timing.mjs from the CLI trace. persona-runner does not write it."
+    },
+    "duration_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Seconds from the first to the last CLI command, measured from the CLI trace. persona-runner does not write it."
+    },
+    "timing": {
+      "type": "object",
+      "description": "How action_log.at_seconds was obtained. Written by apply-trace-timing.mjs.",
+      "required": ["source"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "enum": ["trace", "none"],
+          "description": "trace = measured from the Playwright CLI trace (includes model thinking time between commands). none = no trace was available."
+        },
+        "matched": { "type": "integer", "minimum": 0, "description": "Number of CLI actions in action_log matched to a trace command." },
+        "cli_actions": { "type": "integer", "minimum": 0, "description": "Number of actions in action_log that should correspond to a CLI command." }
+      }
+    },
     "outcome": {
       "enum": ["completed", "abandoned", "blocked", "error"]
     },
@@ -58,16 +80,16 @@
     },
     "action_log": {
       "type": "array",
-      "description": "Time-stamped action trace recorded by persona-runner. Drives behavior_metrics computation in aggregate.mjs.",
+      "description": "Action trace recorded by persona-runner in the order performed. at_seconds is filled in afterwards from the CLI trace. Drives behavior_metrics computation in aggregate.mjs.",
       "items": {
         "type": "object",
-        "required": ["at_seconds", "action"],
+        "required": ["action"],
         "additionalProperties": false,
         "properties": {
           "at_seconds": {
             "type": "number",
             "minimum": 0,
-            "description": "Seconds since started_at."
+            "description": "Seconds since the first CLI command, measured from the CLI trace. Absent when the action could not be matched to the trace."
           },
           "action": {
             "enum": [
@@ -96,6 +118,10 @@
           "note": {
             "type": "string",
             "description": "Optional free-text annotation (e.g. '迷った', '戻った')."
+          },
+          "hesitated": {
+            "type": "boolean",
+            "description": "Self-reported by the persona: true when it was unsure what to do before this action. Counted as a behavior signal."
           }
         }
       }

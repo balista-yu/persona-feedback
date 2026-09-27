@@ -80,6 +80,16 @@ jobs:
             --format markdown
           grep -q "税込か税抜かの表記が無く" /tmp/smoke-single.md
 
+      # 迷った自己申告の回数で赤フラグが立ち、実測の秒数は参考値として並ぶことを確かめる
+      - name: Aggregate sample run (smoke - behavior metrics)
+        run: |
+          node plugins/persona-feedback/skills/persona-tester/scripts/aggregate.mjs \
+            --feedbacks examples/runs/sample-run-behavior-metrics/raw \
+            --output /tmp/smoke-behavior.md \
+            --format markdown
+          grep -q "hesitated_count=3" /tmp/smoke-behavior.md
+          grep -q "モデルの思考時間" /tmp/smoke-behavior.md
+
       - name: Validate plugin manifests (JSON syntax)
         run: |
           node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/marketplace.json','utf8'))"

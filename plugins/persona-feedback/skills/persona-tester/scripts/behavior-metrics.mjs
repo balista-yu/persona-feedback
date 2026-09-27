@@ -7,19 +7,23 @@
  * 「分かりやすかった」と言いつつ実際は迷っていたケースを検出できない構造的限界が
  * ある。行動メトリクスはその欠落を埋めるための補助シグナル。
  *
- * 計測項目（issue #13 の仕様を Playwright MCP の制約に合わせて解釈）:
- *   - hesitation_seconds_mean: 同一画面で snapshot → 次の意味ある操作までの平均秒数
- *     （LLM が「次にどれを押すか」考えた時間の代理指標）
+ * 計測項目は「回数」と「実測時間」に分かれる。
+ *
+ * 回数（赤フラグの判定に使う）:
+ *   - hesitated_count: ペルソナが「迷った」と自己申告した操作の数（action_log の hesitated）
  *   - scroll_back_and_forth: 同一画面でのスクロール往復回数
  *   - back_or_cancel_count: 戻る／キャンセル操作の総数
- *   - time_on_screen_seconds: location ごとの滞在時間
  *
- * Hover 滞留時間は現行 Playwright MCP ツール群（browser_click / browser_snapshot 等）
- * では取れないため計測対象外。将来 Playwright トレース統合で対応する余地あり。
+ * 実測時間（参考値。timing.source=trace のときだけ計算する）:
+ *   - hesitation_seconds_mean / max: snapshot → 次の意味ある操作までの秒数
+ *   - time_on_screen_seconds: location ごとの滞在時間
+ *   秒数は apply-trace-timing.mjs が CLI トレースから書き込む。コマンド間の実時間は
+ *   大半がモデルの思考時間で、API の混み具合や並列数でもぶれるため、赤フラグには使わない。
+ *   runner が自分で書いた秒数（timing が無い古い raw）は推測値なので時間の計算に使わない。
  *
  * 言語フィードバックとの食い違い検出ヒューリスティクス:
  *   - score.overall >= 7（好評価）かつ 以下のいずれか → "言葉と行動の食い違い" 赤フラグ
- *     - hesitation_seconds_mean >= 5
+ *     - hesitated_count >= 3
  *     - back_or_cancel_count >= 3
  *     - scroll_back_and_forth >= 4
  *   - outcome=completed でも上記の行動シグナルが出ていれば flag
@@ -40,7 +44,7 @@ const BACK_OR_CANCEL = new Set(['back', 'cancel']);
 
 // mismatch 検出のしきい値。将来 ENV / 設定で上書きしたくなったらここを変える。
 const MISMATCH_OVERALL_POSITIVE = 7;       // overall >= これで「好評価」扱い
-const MISMATCH_HESITATION_SECONDS = 5;     // hesitation_mean >= これで赤フラグ
+const MISMATCH_HESITATED = 3;              // 迷った自己申告 >= これで赤フラグ
 const MISMATCH_BACK_OR_CANCEL = 3;         // back/cancel >= これで赤フラグ
 const MISMATCH_SCROLL_BACK = 4;            // scroll_back_and_forth >= これで赤フラグ
 
@@ -49,12 +53,16 @@ const UNKNOWN_LOCATION = '(unknown)';
 /**
  * action_log の整合性を軽くチェックして、不正なエントリは捨てる。
  * 厳密検証はスキーマ側に任せ、ここは計算時の堅牢性のための fallback。
+ * 並びは runner の記録順（操作した順）をそのまま使う。
  */
 function sanitizeLog(log) {
   if (!Array.isArray(log)) return [];
-  return log
-    .filter(e => e && typeof e === 'object' && typeof e.at_seconds === 'number' && typeof e.action === 'string')
-    .sort((a, b) => a.at_seconds - b.at_seconds);
+  return log.filter(e => e && typeof e === 'object' && typeof e.action === 'string');
+}
+
+function measuredLog(feedback, log) {
+  if (feedback.timing?.source !== 'trace') return [];
+  return log.filter(e => typeof e.at_seconds === 'number');
 }
 
 /**
@@ -99,6 +107,10 @@ function computeScrollBackAndForth(log) {
   return total;
 }
 
+function computeHesitatedCount(log) {
+  return log.reduce((n, e) => n + (e.hesitated === true ? 1 : 0), 0);
+}
+
 function computeBackOrCancelCount(log) {
   return log.reduce((n, e) => n + (BACK_OR_CANCEL.has(e.action) ? 1 : 0), 0);
 }
@@ -139,15 +151,19 @@ function mean(arr) {
 
 export function computeMetrics(feedback) {
   const log = sanitizeLog(feedback.action_log);
-  const hesitations = computeHesitations(log);
+  const timed = measuredLog(feedback, log);
+  const hesitations = computeHesitations(timed);
   const meanH = mean(hesitations);
   return {
     sample_count: log.length,
-    hesitation_seconds_mean: meanH === null ? null : Number(meanH.toFixed(2)),
-    hesitation_seconds_max: hesitations.length > 0 ? Number(Math.max(...hesitations).toFixed(2)) : null,
+    hesitated_count: computeHesitatedCount(log),
     scroll_back_and_forth: computeScrollBackAndForth(log),
     back_or_cancel_count: computeBackOrCancelCount(log),
-    time_on_screen_seconds: computeTimeOnScreen(log, feedback.duration_seconds ?? null),
+    timing_source: feedback.timing?.source === 'trace' ? 'trace' : 'none',
+    measured_count: timed.length,
+    hesitation_seconds_mean: meanH === null ? null : Number(meanH.toFixed(2)),
+    hesitation_seconds_max: hesitations.length > 0 ? Number(Math.max(...hesitations).toFixed(2)) : null,
+    time_on_screen_seconds: computeTimeOnScreen(timed, feedback.duration_seconds ?? null),
   };
 }
 
@@ -170,8 +186,8 @@ export function detectMismatch(feedback, metrics) {
     : (completed ? '完走したのに' : '');
   if (!condLabel) return null;
 
-  if (metrics.hesitation_seconds_mean !== null && metrics.hesitation_seconds_mean >= MISMATCH_HESITATION_SECONDS) {
-    reasons.push(`hesitation_seconds_mean=${metrics.hesitation_seconds_mean}s (>= ${MISMATCH_HESITATION_SECONDS}s): ${condLabel}、画面を読んで次の操作を決めるまでに時間がかかっている`);
+  if (metrics.hesitated_count >= MISMATCH_HESITATED) {
+    reasons.push(`hesitated_count=${metrics.hesitated_count} (>= ${MISMATCH_HESITATED}): ${condLabel}、操作の前に迷ったと申告している`);
   }
   if (metrics.back_or_cancel_count >= MISMATCH_BACK_OR_CANCEL) {
     reasons.push(`back_or_cancel_count=${metrics.back_or_cancel_count} (>= ${MISMATCH_BACK_OR_CANCEL}): ${condLabel}、戻る/キャンセル操作が多い`);
@@ -203,18 +219,23 @@ export function renderSectionMarkdown(feedbacks) {
   }
 
   lines.push('');
-  lines.push('| persona | hesitation_mean (s) | hesitation_max (s) | scroll_back_and_forth | back_or_cancel | sample |');
-  lines.push('|---|---|---|---|---|---|');
+  lines.push('| persona | hesitated (自己申告) | scroll_back_and_forth | back_or_cancel | hesitation_mean (s, 実測) | hesitation_max (s, 実測) | sample (実測) |');
+  lines.push('|---|---|---|---|---|---|---|');
   for (const { fb, metrics } of enriched) {
     lines.push(
       `| ${fb.persona_id}` +
-      ` | ${metrics.hesitation_seconds_mean ?? '-'}` +
-      ` | ${metrics.hesitation_seconds_max ?? '-'}` +
+      ` | ${metrics.hesitated_count}` +
       ` | ${metrics.scroll_back_and_forth}` +
       ` | ${metrics.back_or_cancel_count}` +
-      ` | ${metrics.sample_count} |`
+      ` | ${metrics.hesitation_seconds_mean ?? '-'}` +
+      ` | ${metrics.hesitation_seconds_max ?? '-'}` +
+      ` | ${metrics.sample_count} (${metrics.measured_count}) |`
     );
   }
+  lines.push('');
+  lines.push('秒数は Playwright CLI のトレースから測った実時間で、大半はモデルの思考時間。' +
+    '人のためらいそのものではないので参考値として扱い、赤フラグには使わない。' +
+    'トレースが無いペルソナは `-`。');
   lines.push('');
 
   const mismatches = enriched
@@ -233,10 +254,10 @@ export function renderSectionMarkdown(feedbacks) {
   lines.push('');
 
   // time_on_screen は冗長なので折りたたみ
-  lines.push('<details><summary>画面ごとの滞在時間</summary>');
+  lines.push('<details><summary>画面ごとの滞在時間（実測・モデルの思考時間を含む）</summary>');
   lines.push('');
   for (const { fb, metrics } of enriched) {
-    if (metrics.sample_count === 0) continue;
+    if (metrics.measured_count === 0) continue;
     lines.push(`#### ${fb.persona_id}`);
     const entries = Object.entries(metrics.time_on_screen_seconds);
     if (entries.length === 0) {

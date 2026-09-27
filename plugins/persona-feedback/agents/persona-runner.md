@@ -100,19 +100,23 @@ target URL を操作し、構造化フィードバックを返す。
    - screenshot: 該当スクリーンショットのファイル名（あれば）
    - suggestion: ペルソナ視点の改善提案（任意）
 6. **`action_log` に操作トレースを記録する（必須）**:
-   各ブラウザ操作（navigate / snapshot / click / type / select / press_key /
-   scroll / back / cancel / screenshot / wait）の前後で1エントリ追加。
-   - `at_seconds`: started_at からの経過秒数（小数可）
-   - `action`: 上記 enum のいずれか
+   ブラウザ操作（上の表のコマンド）を1回実行するごとに、実行した順に1エントリ追加する。
+   CLI を使わない行動（様子を見て待つ `wait`、諦める `give_up`）も記録する。
+   - `action`: 上の表の action、または wait / give_up。画面上のキャンセルボタンを押したときは cancel
    - `target_desc`: 操作対象の人間可読な説明（"メアド欄", "送信ボタン" 等）
    - `location`: 現在の URL（または論理画面名）。これが滞在時間計算の単位になる
-   - `note`: 任意。「迷った」「読み返した」等の自己観察
+   - `hesitated`: この操作の前に、何をすればいいか迷ったなら `true`。迷わなければ省略する
+   - `note`: 任意。「読み返した」「怖くなって戻った」等の自己観察
 
-   この trace は集約側で「言語化以前の戸惑い」の擬似計測に使う（snapshot →
-   次の click までの逡巡時間、画面ごとの滞在時間、back/cancel 頻度など）。
-   **記録を省略すると行動メトリクスが空になり、言葉と行動の食い違い検出が
-   無効化される。** ペルソナが「分かりやすかった」と言いつつ実は迷っていた
-   ケースを拾うための核心データなので、面倒でも必ず埋めること。
+   **秒数（`at_seconds`）・`started_at`・`duration_seconds` は書かない。** あなたは現在時刻を
+   知る手段を持たないので、書くと推測値になる。親エージェントが CLI のトレースから
+   実測の時刻を後で書き込む。実行したコマンドと記録の順番がずれると実測と対応づけられ
+   なくなるので、失敗したコマンド（`### Error`）は記録しないこと。
+
+   この trace は集約側で「言語化以前の戸惑い」の擬似計測に使う（迷った自己申告の回数、
+   back/cancel 頻度、スクロールの往復など）。**記録を省略すると行動メトリクスが空になり、
+   言葉と行動の食い違い検出が無効化される。** ペルソナが「分かりやすかった」と言いつつ
+   実は迷っていたケースを拾うための核心データなので、面倒でも必ず埋めること。
 
 7. タスク完了 / 諦め / エラーで終了（セッションは閉じずにそのまま返す）
 8. feedback.schema.json に準拠した JSON を最終出力する
@@ -126,8 +130,6 @@ target URL を操作し、構造化フィードバックを返す。
   "persona_id": "tanaka-60s",
   "target": "http://localhost:3000",
   "task": "新規登録してプロフィール画像をアップロードする",
-  "started_at": "2026-05-11T10:00:00Z",
-  "duration_seconds": 123.4,
   "outcome": "abandoned",
   "narrative": "私はこのアプリを開いたが、最初の画面で『アップロード』という言葉が出てきて何のことか分からなかった。戻るボタンを探したが見当たらず、結局アプリを閉じた。",
   "findings": [
@@ -147,11 +149,11 @@ target URL を操作し、構造化フィードバックを返す。
     "would_recommend": false
   },
   "action_log": [
-    { "at_seconds": 0,   "action": "navigate", "location": "http://localhost:3000", "target_desc": "トップへ" },
-    { "at_seconds": 1,   "action": "snapshot", "location": "http://localhost:3000" },
-    { "at_seconds": 12,  "action": "click",    "location": "http://localhost:3000", "target_desc": "アップロードボタン", "note": "意味が分からず迷った" },
-    { "at_seconds": 14,  "action": "back",     "location": "http://localhost:3000", "note": "怖くなって戻った" },
-    { "at_seconds": 30,  "action": "give_up",  "location": "http://localhost:3000" }
+    { "action": "snapshot", "location": "http://localhost:3000" },
+    { "action": "screenshot", "location": "http://localhost:3000", "target_desc": "最初の画面" },
+    { "action": "click",    "location": "http://localhost:3000", "target_desc": "アップロードボタン", "hesitated": true, "note": "意味が分からないまま押した" },
+    { "action": "back",     "location": "http://localhost:3000/upload", "note": "怖くなって戻った" },
+    { "action": "give_up",  "location": "http://localhost:3000" }
   ]
 }
 ```

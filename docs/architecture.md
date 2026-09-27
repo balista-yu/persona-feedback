@@ -5,7 +5,7 @@ USER
  │ /skill persona-feedback:persona-tester
  ▼
 Main Claude Agent (orchestrator)
- │  ├─ opens Playwright CLI session × N  (-s=<ts>-<persona_id>)
+ │  ├─ opens Playwright CLI session × N  (-s=<ts>-<persona_id>) + tracing-start
  │  ├─ spawns Task tool × N (parallel)
  │  │                          │
  │  │  ┌───────────────────────┴───────────────────────┐
@@ -17,7 +17,7 @@ Main Claude Agent (orchestrator)
  │           └───────────────────────┼────────────────────┘
  │                                   ▼
  │                            TARGET WEB APP
- │  └─ closes all sessions after collecting
+ │  └─ tracing-stop → apply-trace-timing.mjs (measured at_seconds) → close
  │
  │ collect feedbacks JSON
  ▼

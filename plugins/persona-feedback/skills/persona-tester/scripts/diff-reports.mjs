@@ -7,7 +7,8 @@
  *   - ペルソナ別 overall スコア差分
  *   - outcome 変化
  *   - findings の追加 / 消失 / 維持（category × 正規化 location キーでマッチ）
- *   - behavior_metrics の差分（hesitation_mean / back_or_cancel）
+ *   - behavior_metrics の差分（迷った自己申告の回数 / back_or_cancel）
+ *     実測の逡巡時間はモデルの思考時間が大半で回ごとにぶれるため比較しない
  * を抽出する。
  *
  * 役割:
@@ -134,8 +135,8 @@ export function diffReports(from, to) {
     if (!a && !b) continue;
     metricDeltas.push({
       persona_id: id,
-      hesitation_from: a?.hesitation_seconds_mean ?? null,
-      hesitation_to: b?.hesitation_seconds_mean ?? null,
+      hesitated_from: a?.hesitated_count ?? null,
+      hesitated_to: b?.hesitated_count ?? null,
       back_or_cancel_from: a?.back_or_cancel_count ?? null,
       back_or_cancel_to: b?.back_or_cancel_count ?? null,
     });
@@ -232,10 +233,10 @@ export function renderDiffMarkdown(diff) {
   if (diff.metric_deltas.length > 0) {
     lines.push('### 行動メトリクス変化');
     lines.push('');
-    lines.push('| persona | hesitation_mean (前→今) | back_or_cancel (前→今) |');
+    lines.push('| persona | hesitated (前→今) | back_or_cancel (前→今) |');
     lines.push('|---|---|---|');
     for (const m of diff.metric_deltas) {
-      lines.push(`| ${m.persona_id} | ${m.hesitation_from ?? '-'} → ${m.hesitation_to ?? '-'} | ${m.back_or_cancel_from ?? '-'} → ${m.back_or_cancel_to ?? '-'} |`);
+      lines.push(`| ${m.persona_id} | ${m.hesitated_from ?? '-'} → ${m.hesitated_to ?? '-'} | ${m.back_or_cancel_from ?? '-'} → ${m.back_or_cancel_to ?? '-'} |`);
     }
     lines.push('');
   }
