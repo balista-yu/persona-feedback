@@ -63,7 +63,7 @@ http://localhost:3000 を tanaka-60s と gal-20s でテストして
 
 特別な値:
 - `all` → cwd と同梱のすべてのペルソナ
-- `bundled` → 同梱 3 体のみ（`tanaka-60s, gal-20s, dev-engineer`）
+- `bundled` → `${CLAUDE_PLUGIN_ROOT}/personas/` 配下の同梱ペルソナすべて
 - `user` → cwd 配下のユーザー定義ペルソナのみ
 
 ### C. ペルソナ未指定（対話モード）
@@ -275,8 +275,9 @@ baseline を指定したいときは `--baseline <path>` を使う。任意の2 
 - 生フィードバック: `.persona-feedback/<timestamp>/raw/<persona_id>.json`
 - スクリーンショット: `.persona-feedback/<timestamp>/screenshots/<persona_id>-*.png`
 
-`.persona-feedback/` は `.gitignore` 済み。`/persona-feedback:clean` スキルで
-一括削除可能。`<timestamp>` は `YYYYMMDD-HHmmss` 形式で、最終レポートと
+プラグインは利用側リポジトリの `.gitignore` を変更しない。`.persona-feedback/` が
+未追跡ファイルとして出ていたら、`.gitignore` への追加をユーザーに案内する。
+`/persona-feedback:clean` スキルで一括削除可能。`<timestamp>` は `YYYYMMDD-HHmmss` 形式で、最終レポートと
 中間物で同じ値を使い対応付ける。
 
 ## エラーハンドリング (D-08: partial success)
@@ -296,6 +297,6 @@ baseline を指定したいときは `--baseline <path>` を使う。任意の2 
 入力が不足している場合に質問する:
 
 - target URL
-- 使うペルソナ（同梱3体でよいか、追加したいか）
+- 使うペルソナ（同梱ペルソナでよいか、追加したいか）
 - 具体的なタスク（曖昧な「テストして」では実行しない）
 - focus 観点

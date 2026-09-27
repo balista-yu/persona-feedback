@@ -106,7 +106,7 @@ tanaka-60s と gal-20s でテストして
 | キーワード | 対象 |
 |---|---|
 | `all` | 同梱 + cwd の全ペルソナ |
-| `bundled` | 同梱 3 体のみ |
+| `bundled` | 同梱ペルソナのみ |
 | `user` | cwd 配下のユーザー定義のみ |
 
 **C. ペルソナ未指定（一覧から複数選択）**
@@ -149,7 +149,12 @@ persona-tester で http://localhost:3000 をテスト
             └── ...
 ```
 
-両者は `.gitignore` 済み。
+プラグインは利用側リポジトリの `.gitignore` を変更しない。コミットしたくなければ自分で追加する
+
+```gitignore
+/.persona-feedback/
+/reports/
+```
 
 ## 注意
 
