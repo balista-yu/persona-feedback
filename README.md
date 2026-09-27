@@ -50,6 +50,20 @@ Claude Code 内で:
 `permission denied` になり、`outcome: error` で終了する。
 これ以外の Bash は許可していないので、サブエージェントが別のコマンドを実行しようとしても拒否される。
 
+### 0.1.x から更新する
+
+1. プラグインを更新する。Claude Code 内で `/plugin marketplace update persona-feedback` を
+   実行してから、`/plugin` の Installed タブで persona-feedback を選んで Update now。
+   シェルからなら `claude plugin update persona-feedback@persona-feedback`
+2. Claude Code のセッションを開き直す（今のセッションで反映するなら `/reload-plugins`）。
+   開いたままのセッションは古い版で動き続ける。0.1.x の Playwright MCP サーバーもここで外れる
+3. 上の「必要要件」にある `install-browser` で Chromium を入れる
+4. 上の「permission 設定」の許可を追加する。0.1.x で入れた
+   `mcp__plugin_persona-feedback_playwright__*` の許可は不要になったので消してよい
+
+自作のペルソナ YAML はそのまま使える。前回との差分レポートでは行動メトリクスの比較が
+「迷った申告の回数」に変わったため、0.1.x で作ったレポートとの比較ではその列が `-` になる。
+
 ### 並列実行の仕組み
 
 ペルソナごとに Playwright CLI の名前付きセッション（別プロセス・別ブラウザ）を割り当てるので、

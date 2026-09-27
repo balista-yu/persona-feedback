@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
-MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
+## [0.2.0] - 2026-09-27
+
+0.1.0 以降の変更。ブラウザ操作を Playwright MCP から Playwright CLI に移した破壊的変更を含むため、
+更新後に許可リストの変更などが必要。手順は README の「0.1.x から更新する」を参照。
 
 ### Fixed (issue #27: action_log の秒数が推測値になっている)
 - **秒数を CLI のトレースから実測する**: runner は現在時刻を取る手段が無く、`at_seconds` /
@@ -269,5 +271,6 @@ MCP ツール名バグの修正。リリース版に切るタイミングで [0.
 - GitHub Actions: スキーマ検証 (`validate.yml`) とタグリリース (`release.yml`)。
 - ドキュメント: `getting-started`, `persona-spec`, `feedback-spec`, `architecture`。
 
-[Unreleased]: https://github.com/balista-yu/persona-feedback/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/balista-yu/persona-feedback/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/balista-yu/persona-feedback/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/balista-yu/persona-feedback/releases/tag/v0.1.0
