@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Fixed (issue #22: ドキュメントの記述ずれ)
+- **`.gitignore` 済みという記述を訂正**: プラグインは利用側リポジトリの
+  `.gitignore` を変更できないため、利用側で追加するよう README / SKILL.md で案内する。
+- **`bundled` キーワードの定義を実装に合わせる**: 同梱 3 体の固定リストではなく、
+  `personas/` 配下の同梱ペルソナすべて（`yamada-50s-dsl` を含む）を指す。
+
 ### Changed (chore: pin bundled Chromium)
 - **`.mcp.json` に `--browser=chromium` を追加してバンドル版 Chromium に固定**:
   ホストの Chrome/Chromium に依存せず、Playwright がバージョン管理する Chromium を
