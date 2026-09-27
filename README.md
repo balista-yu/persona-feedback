@@ -1,6 +1,6 @@
 # persona-feedback
 
-合成ペルソナをサブエージェントとして並列起動し、Playwright MCP 経由で
+合成ペルソナをサブエージェントとして並列起動し、Playwright CLI 経由で
 Web アプリを操作させて構造化フィードバックを集約する Claude Code プラグイン。
 
 LLM は本質的に「賢く・協調的・推論で突破する」ので、そのままだと初心者ユーザーの
@@ -11,11 +11,15 @@ LLM は本質的に「賢く・協調的・推論で突破する」ので、そ�
 ## 必要要件
 
 - Claude Code v2 以降
-- Node.js 24（Active LTS。`@playwright/mcp` および aggregate スクリプトで使う ESM API がこの世代で安定動作する想定。20 LTS でも動くはずだが検証は 24 のみ）
-- 初回起動時に Playwright バンドル版 Chromium の DL が走る（約 170MB、数十秒〜数分）
-  - ホストの Chrome/Chromium ではなく、Playwright がバージョン管理する Chromium を使う
-  - 再現性を担保するため `.mcp.json` で `--browser=chromium` に固定している
-  - ブラウザを変更したい場合は `.mcp.json` の `--browser=` を `chrome` / `firefox` / `webkit` / `msedge` に編集
+- Node.js 24（Active LTS。`@playwright/cli` および aggregate スクリプトで使う ESM API がこの世代で安定動作する想定。20 LTS でも動くはずだが検証は 24 のみ）
+- Playwright CLI（`@playwright/cli@0.1.21`）を `npx` で呼ぶので事前インストールは不要
+- Playwright がバージョン管理する Chromium を使う（約 170MB）。未インストールなら実行前の検証で案内が出る。事前に入れる場合:
+
+  ```bash
+  npx -y @playwright/cli@0.1.21 install-browser chromium
+  ```
+
+  `npx playwright install chromium` だと別バージョンの Playwright の Chromium が入り、見つからないことがある
 
 ## インストール
 
@@ -26,7 +30,7 @@ Claude Code 内で:
 /plugin install persona-feedback@persona-feedback
 ```
 
-### MCP ツールの permission 設定（初回必須）
+### permission 設定（初回必須）
 
 サブエージェントはバックグラウンド実行されるため対話的な permission prompt を承認できない。
 インストール後、プロジェクトの `.claude/settings.local.json` に以下を追加してください
@@ -36,22 +40,21 @@ Claude Code 内で:
 {
   "permissions": {
     "allow": [
-      "mcp__plugin_persona-feedback_playwright__browser_navigate",
-      "mcp__plugin_persona-feedback_playwright__browser_snapshot",
-      "mcp__plugin_persona-feedback_playwright__browser_click",
-      "mcp__plugin_persona-feedback_playwright__browser_type",
-      "mcp__plugin_persona-feedback_playwright__browser_select_option",
-      "mcp__plugin_persona-feedback_playwright__browser_take_screenshot",
-      "mcp__plugin_persona-feedback_playwright__browser_wait_for",
-      "mcp__plugin_persona-feedback_playwright__browser_press_key",
-      "mcp__plugin_persona-feedback_playwright__browser_resize"
+      "Bash(npx -y @playwright/cli@0.1.21:*)"
     ]
   }
 }
 ```
 
-これを忘れるとサブエージェントが MCP ツール呼び出しで `permission denied` 扱いになり
-`outcome: blocked` で終了する。
+サブエージェントはこの形のコマンドでブラウザを操作する。許可が無いとブラウザ操作が
+`permission denied` になり、`outcome: error` で終了する。
+これ以外の Bash は許可していないので、サブエージェントが別のコマンドを実行しようとしても拒否される。
+
+### 並列実行の仕組み
+
+ペルソナごとに Playwright CLI の名前付きセッション（別プロセス・別ブラウザ）を割り当てるので、
+並列に走らせても入力や画面遷移が混ざらない。Playwright MCP はサブエージェントと接続を
+共有してしまいペルソナごとに分離できないため、使っていない。
 
 ## 使い方
 

@@ -18,7 +18,7 @@ description: Use when the user wants to define, generate, or refine a synthetic
 
 - 自由記述のコンテキスト（例: 「ECサイト向けに3人のペルソナを」）
 - 既存ペルソナ YAML への修正指示
-- ターゲットアプリの URL（任意 — Playwright MCP で実物を見て調整可能）
+- ターゲットアプリの URL（任意 — ブラウザで実物を見て調整可能）
 
 ## 出力
 

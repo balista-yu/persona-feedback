@@ -9,27 +9,21 @@ Claude Code 内で以下を実行:
 /plugin install persona-feedback@persona-feedback
 ```
 
-インストール時に Playwright MCP サーバーが起動する。
-Node.js 24 が必要。
+Node.js 24 が必要。ブラウザ操作には Playwright CLI（`@playwright/cli@0.1.21`）を
+`npx` で呼ぶので、事前のインストールは不要。
 
 #### 初回のみ: Chromium のインストール（〜170MB）
 
-最初に `persona-tester` を実行すると、Playwright がバンドル版 Chromium を
-ダウンロードする（約 170MB、数十秒〜数分）。ホストの Chrome/Chromium ではなく
-Playwright がバージョン管理する Chromium を使うことで、環境差による findings の
-ブレを防ぐ。
-
-事前にダウンロードしておきたい場合:
+ホストの Chrome/Chromium ではなく Playwright がバージョン管理する Chromium を
+使うことで、環境差による findings のブレを防ぐ。未インストールなら `persona-tester` の
+検証フェーズで案内が出る。事前に入れておきたい場合:
 
 ```bash
-npx playwright install chromium
+npx -y @playwright/cli@0.1.21 install-browser chromium
 ```
 
-別のブラウザを使いたい場合は `.mcp.json` の `--browser=chromium` を
-`chrome` / `firefox` / `webkit` / `msedge` のいずれかに編集してから、
-そのブラウザを `npx playwright install <name>` で入れる。
-プラグインを `/plugin install` で入れ直すと `.mcp.json` の編集が
-`~/.claude/plugins/cache/` 配下にも反映される。
+`npx playwright install chromium` だと別バージョンの Playwright の Chromium が入り、
+CLI から見つからないことがある。
 
 ### 初回のみ: permission allowlist 追加
 
@@ -40,15 +34,7 @@ npx playwright install chromium
 {
   "permissions": {
     "allow": [
-      "mcp__plugin_persona-feedback_playwright__browser_navigate",
-      "mcp__plugin_persona-feedback_playwright__browser_snapshot",
-      "mcp__plugin_persona-feedback_playwright__browser_click",
-      "mcp__plugin_persona-feedback_playwright__browser_type",
-      "mcp__plugin_persona-feedback_playwright__browser_select_option",
-      "mcp__plugin_persona-feedback_playwright__browser_take_screenshot",
-      "mcp__plugin_persona-feedback_playwright__browser_wait_for",
-      "mcp__plugin_persona-feedback_playwright__browser_press_key",
-      "mcp__plugin_persona-feedback_playwright__browser_resize"
+      "Bash(npx -y @playwright/cli@0.1.21:*)"
     ]
   }
 }

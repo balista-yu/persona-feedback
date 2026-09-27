@@ -12,7 +12,7 @@
   "plugins": [
     {
       "name": "persona-feedback",
-      "description": "Run synthetic personas against your web app via Playwright MCP",
+      "description": "Run synthetic personas against your web app via Playwright CLI",
       "source": "./plugins/persona-feedback",
       "category": "testing",
       "keywords": ["ux", "testing", "persona", "playwright", "feedback"]
