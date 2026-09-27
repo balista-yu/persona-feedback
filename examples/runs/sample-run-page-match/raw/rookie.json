@@ -1,0 +1,27 @@
+{
+  "persona_id": "rookie",
+  "target": "http://localhost:3000/reservations/new/",
+  "task": "ペットホテルを予約する",
+  "outcome": "completed",
+  "narrative": "予約したあとに出てきた画面で、どこを押せばいいのか少し迷った。",
+  "findings": [
+    {
+      "category": "usability",
+      "severity": "low",
+      "page": "http://localhost:3000/reservations/new/",
+      "element": "「ご予約を受け付けました」ダイアログ",
+      "location": "予約確定後に出るダイアログ",
+      "description": "ダイアログを開いた時点でフォーカスが「閉じる」にあり、Enter で続けて予約に進めない",
+      "quote": "Enter 押したら閉じちゃった…"
+    },
+    {
+      "category": "copywriting",
+      "severity": "low",
+      "page": "http://localhost:3000/reservations/new",
+      "element": "料金表示",
+      "description": "税込か税抜かの表記が無く、合計がいくらになるのか分からない",
+      "quote": "これって税込み？"
+    }
+  ],
+  "score": { "overall": 6, "would_recommend": true }
+}

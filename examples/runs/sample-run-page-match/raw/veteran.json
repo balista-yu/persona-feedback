@@ -1,0 +1,18 @@
+{
+  "persona_id": "veteran",
+  "target": "http://localhost:3000/reservations/new/",
+  "task": "ペットホテルを予約する",
+  "outcome": "completed",
+  "narrative": "予約自体は速いが、多頭飼いで続けて予約するたびにマウスに持ち替えるのが面倒。",
+  "findings": [
+    {
+      "category": "usability",
+      "severity": "high",
+      "page": "/reservations/new/",
+      "element": "予約完了ダイアログ（続けて予約する／閉じる）",
+      "description": "初期フォーカスが「閉じる」なので、キーボードだけで次の子の予約に進めない",
+      "quote": "1匹ごとにマウスを触らされるのはきつい"
+    }
+  ],
+  "score": { "overall": 7, "would_recommend": true }
+}

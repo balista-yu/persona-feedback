@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Fixed (issue #23: 集約レポートで指摘が抜ける・まとまらない)
+- **finding に `page` / `element` を追加**: 自由文の `location` は runner ごとに表現が揺れ、
+  同じ問題でも all-agreement にまとまらなかった。`page`（画面の URL）と `element`
+  （表示文言での要素名）で判定し、element の呼び方が揺れていても同じ category ＋ page を
+  全員が指摘していれば `page-match` として all-agreement に入れる。severity は条件にしない。
+  `page` の無い旧形式は従来の category-only 救済を使う。diff-reports も同じ場所キーを使う。
+- **`aggregate.mjs --severity-threshold`**: しきい値未満の finding を集約前に除外する（既定 low）。
+  segment-specific の「medium 以上」固定条件を削除し、`severity_threshold: low` で low の
+  指摘が落ちていた問題を解消。SKILL.md の集約呼び出しでしきい値を渡す。
+- **ペルソナ1体の実行で指摘が1件も出ない問題を修正**: 全指摘を segment-specific に出す。
+
 ### Changed (issue #19 / #21: Playwright MCP → Playwright CLI) — BREAKING
 - **並列実行で全ペルソナが同じブラウザを操作していた問題を修正**: サブエージェントは
   MCP 接続を親セッションと共有し、Playwright MCP の分離は接続単位のため、`--isolated`

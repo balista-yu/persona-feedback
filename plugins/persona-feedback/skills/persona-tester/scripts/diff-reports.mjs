@@ -23,10 +23,10 @@
 
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve, basename } from 'node:path';
-import { normalizeLocation } from './normalize-location.mjs';
+import { locationKey } from './normalize-location.mjs';
 
 function findingKey(persona_id, find) {
-  return `${persona_id}::${find.category}::${normalizeLocation(find.location)}`;
+  return `${persona_id}::${find.category}::${locationKey(find)}`;
 }
 
 function indexFindings(report) {

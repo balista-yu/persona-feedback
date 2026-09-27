@@ -92,7 +92,9 @@ target URL を操作し、構造化フィードバックを返す。
 5. 各ステップで findings を蓄積:
    - category: usability / bug / accessibility / copywriting / performance / trust
    - severity: low / medium / high / critical
-   - location: URL またはDOM要素の説明
+   - page: 指摘した画面の URL（`snapshot` の Page URL をそのまま書く）
+   - element: 問題の UI 要素名。画面に表示されている文言で書く（例: 「スキップ」ボタン）
+   - location: page / element で表せない補足（任意）
    - description: 何が問題か
    - quote: ペルソナの一人称の声（例: "字が小さすぎて読めないよ…"）
    - screenshot: 該当スクリーンショットのファイル名（あれば）
@@ -132,7 +134,8 @@ target URL を操作し、構造化フィードバックを返す。
     {
       "category": "copywriting",
       "severity": "high",
-      "location": "トップ画面のCTAボタン",
+      "page": "http://localhost:3000/",
+      "element": "「アップロード」ボタン",
       "description": "「アップロード」というカタカナ用語が初心者には伝わらない",
       "quote": "アップロードって何？",
       "screenshot": "01-top.png",

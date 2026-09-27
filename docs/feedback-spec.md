@@ -18,7 +18,9 @@
     {
       "category": "usability | bug | accessibility | copywriting | performance | trust",
       "severity": "low | medium | high | critical",
-      "location": "URL or DOM selector / region description",
+      "page": "指摘した画面の URL またはパス（同じ問題を束ねる単位）",
+      "element": "画面に表示されている文言での UI 要素名",
+      "location": "page / element で表せない補足（任意）",
       "description": "客観的に何が問題か",
       "quote": "ペルソナの一人称の生の声",
       "screenshot": "01-top.png",
@@ -62,9 +64,15 @@
 ```
 ## 🚨 全員指摘 (all-agreement)
    - 全ペルソナが指摘した同一の問題。最優先で直すべき。
+   - 同一かどうかは category ＋ page ＋ element で判定。element の呼び方が
+     揺れていても、同じ category ＋ page を全員が指摘していればまとめる
+     （severity はペルソナごとに感じ方が違うので条件にしない）。
 
 ## 🎯 セグメント特有 (segment-specific)
    - 特定ペルソナだけが詰まった箇所。対象ユーザー層に依存する課題。
+   - ペルソナ1体で実行したときは全指摘がここに出る。
+
+--severity-threshold 未満の指摘はどちらのセクションにも出さない（既定 low = 全て）。
 
 ## ⚖️ 評価分裂 (controversial)
    - overall スコア差 ≥ 3、または would_recommend が割れた要素。

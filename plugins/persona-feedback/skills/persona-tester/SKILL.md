@@ -295,8 +295,14 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/persona-tester/scripts/aggregate.mjs" \
   --feedbacks .persona-feedback/<timestamp>/raw \
   --output reports/<timestamp>-report.md \
   --format both \
-  --auto-baseline-dir ./reports
+  --auto-baseline-dir ./reports \
+  --severity-threshold <severity_threshold>
 ```
+
+`--severity-threshold` には入力の `severity_threshold` をそのまま渡す（既定 `low`）。
+しきい値未満の finding は集約セクションから外れる（JSON の `raw_feedbacks` には残る）。
+同じ問題かどうかは finding の `page`（画面）と `element`（要素名）で判定し、要素の
+呼び方が揺れていても同じ画面・同じ category を全員が指摘していれば全員指摘にまとめる。
 
 入力（中間物）は隠しディレクトリ `.persona-feedback/`、
 出力（最終レポート）は可視ディレクトリ `reports/` という分離。
