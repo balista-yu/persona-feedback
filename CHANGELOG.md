@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Changed (issue #19 / #21: Playwright MCP → Playwright CLI) — BREAKING
+- **並列実行で全ペルソナが同じブラウザを操作していた問題を修正**: サブエージェントは
+  MCP 接続を親セッションと共有し、Playwright MCP の分離は接続単位のため、`--isolated`
+  を付けてもペルソナ同士が同じタブを奪い合っていた。プラグインのエージェントは専用の
+  MCP サーバーも宣言できないため、Playwright CLI（`@playwright/cli@0.1.21` を `npx` で
+  バージョン固定）の名前付きセッション `-s=<timestamp>-<persona_id>` に移行した。
+  セッションごとに別プロセス・別ブラウザになる。
+- **セッションの open / resize / close はメインエージェントが担当**: runner は渡された
+  セッションを `<cli> -s=<session> <command>` の形で操作するだけ。runner の tools は
+  `Bash` / `Read`。利用者は `Bash(npx -y @playwright/cli@0.1.21:*)` を allowlist に追加する
+  （MCP ツール名の allowlist は不要になった）。
+- **スクショ保存先を cwd 基準に統一**: `screenshot --filename=.persona-feedback/<ts>/screenshots/...`
+  で保存する。フォルダは CLI が作るので ENOENT にならない（#21）。
+- **検証フェーズでブラウザの有無を確認**: 未インストールなら `install-browser` を案内する（#20 の残り）。
+- `.mcp.json` を削除。
+
 ### Fixed (issue #20: 導入直後にスクリプトが落ちる)
 - **`yaml` をプラグインに同梱**: プラグインのキャッシュには `node_modules` が無く、
   `list-personas.mjs` / `behavior-rules.mjs` が `ERR_MODULE_NOT_FOUND` で落ちていた。
@@ -29,7 +45,7 @@ MCP ツール名バグの修正。リリース版に切るタイミングで [0.
   ホストの Chrome/Chromium に依存せず、Playwright がバージョン管理する Chromium を
   使うよう明示。WSL / Docker / CI / 新規ユーザー環境で「ホストに Chrome が無くて
   `Browser chrome-for-testing is not installed` で blocked」になる事故を予防。
-  `--isolated` で context 分離している方針と整合し、再現性を担保する。
+  （issue #19 で `.mcp.json` ごと廃止。Chromium 固定の方針は CLI の `open --browser=chromium` に引き継ぐ）
 - **初回起動時に Chromium が DL される（〜170MB）** ことを README / getting-started に明記。
   事前に入れたい場合は `npx playwright install chromium`。
 - 他のブラウザを使いたい場合は `.mcp.json` の `--browser=` を `chrome` / `firefox` /

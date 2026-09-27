@@ -5,6 +5,7 @@ USER
  │ /skill persona-feedback:persona-tester
  ▼
 Main Claude Agent (orchestrator)
+ │  ├─ opens Playwright CLI session × N  (-s=<ts>-<persona_id>)
  │  ├─ spawns Task tool × N (parallel)
  │  │                          │
  │  │  ┌───────────────────────┴───────────────────────┐
@@ -12,10 +13,11 @@ Main Claude Agent (orchestrator)
  │  Sub-agent: tanaka-60s   Sub-agent: gal-20s   Sub-agent: dev-engineer
  │   (isolated context)     (isolated context)   (isolated context)
  │           │                       │                    │
- │           └─── Playwright MCP (shared, per-agent context) ───┘
- │                            │
- │                            ▼
- │                     TARGET WEB APP
+ │   CLI session (own browser) CLI session           CLI session
+ │           └───────────────────────┼────────────────────┘
+ │                                   ▼
+ │                            TARGET WEB APP
+ │  └─ closes all sessions after collecting
  │
  │ collect feedbacks JSON
  ▼
@@ -35,11 +37,15 @@ aggregate.mjs  →  reports/<ts>-report.md / .json
 並列起動する。既定の `max_parallel` は 3（実測コスト目安は SKILL.md 参照）。
 それを超える要求はメインエージェントが概算コストを提示してユーザー承認を得てから起動。
 
-### 共有 MCP / 分離ブラウザコンテキスト
+### ペルソナごとのブラウザセッション
 
-Playwright MCP サーバーは1つだけ立ち上がるが、各サブエージェントは独立した
-ブラウザコンテキスト（Cookie / localStorage が分離された別タブ相当）を使う。
-あるペルソナのログイン状態が他に漏れない。
+メインエージェントがペルソナごとに Playwright CLI の名前付きセッションを開き、
+サブエージェントにはセッション名だけを渡す。セッションは別プロセス・別ブラウザで、
+Cookie / Storage / タブが独立しているので、あるペルソナのログイン状態や入力が他に漏れない。
+
+Playwright MCP は使わない。分離が MCP 接続単位で、サブエージェントは親セッションの
+接続を共有するため、並列のペルソナが同じタブを奪い合ってしまう。プラグインの
+エージェントは専用の MCP サーバーも宣言できない。
 
 ### 構造化出力
 
@@ -53,7 +59,6 @@ Playwright MCP サーバーは1つだけ立ち上がるが、各サブエージ�
 .claude-plugin/marketplace.json
     └─→ plugins/persona-feedback/.claude-plugin/plugin.json
                                   │
-                                  ├─→ .mcp.json (Playwright, --isolated --output-dir ./.persona-feedback)
                                   ├─→ skills/persona-builder/SKILL.md
                                   │      └─ templates/persona.template.yaml
                                   ├─→ skills/persona-tester/SKILL.md
@@ -76,7 +81,8 @@ Playwright MCP サーバーは1つだけ立ち上がるが、各サブエージ�
 └── .persona-feedback/                # 中間物（捨てる前提）
     └── <timestamp>/
         ├── raw/<persona_id>.json     # サブエージェントから回収した生 JSON
-        └── screenshots/*.png         # Playwright MCP が --output-dir に書く
+        ├── screenshots/*.png         # サブエージェントが screenshot --filename で書く
+        └── cli/<persona_id>/*.yml    # CLI セッションが書くスナップショット
 ```
 
 最終レポートは振り返り可能・共有可能な単一ファイルなので可視ディレクトリに、

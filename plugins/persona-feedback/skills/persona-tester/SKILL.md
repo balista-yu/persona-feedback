@@ -3,16 +3,32 @@ name: persona-tester
 description: Use when the user wants to test a web app with synthetic personas.
   Triggers include "test my app with personas", "ペルソナにテストさせて",
   "run persona feedback on <url>". Also invokable as
-  /persona-feedback:persona-tester <personas> <url> <task>. Requires Playwright
-  MCP. Spawns one or more persona-runner sub-agents, executes a task in a
-  browser, and returns aggregated feedback that highlights cross-persona
-  disagreement.
+  /persona-feedback:persona-tester <personas> <url> <task>. Uses Playwright CLI
+  (via npx) with one isolated browser session per persona. Spawns one or more
+  persona-runner sub-agents, executes a task in a browser, and returns
+  aggregated feedback that highlights cross-persona disagreement.
 ---
 
 # persona-tester
 
 複数の合成ペルソナをサブエージェントとして並列起動し、Web アプリを実際に操作させ、
 構造化フィードバックを集約するスキル。
+
+## ブラウザ操作の前提
+
+ブラウザは Playwright CLI の名前付きセッションで動かす。以降 `<cli>` と書いたら
+次のコマンドを指す（バージョン固定。runner にも同じ文字列を渡す）:
+
+```
+npx -y @playwright/cli@0.1.21
+```
+
+- セッション名は `<timestamp>-<persona_id>`。セッションごとに別プロセス・別ブラウザ
+  （Cookie / Storage / タブが独立）なので、並列に走らせても干渉しない
+- セッションの `open` / `resize` / `close` はメインエージェントだけが行う。
+  runner は開いたセッションを操作するだけ
+- Playwright MCP はサブエージェントと接続を共有するため、ペルソナごとに分離できない。
+  そのためこのスキルでは使わない
 
 ## 入力
 
@@ -81,13 +97,14 @@ http://localhost:3000 を tanaka-60s と gal-20s でテストして
 
 ## コスト目安
 
-実測値（Opus 4.7 + Playwright MCP + 中規模 Next.js サインアップフロー）:
+実測値（Opus 4.7 + Playwright MCP + 中規模 Next.js サインアップフロー）。
+Playwright CLI に移行してからは未計測なので、目安として扱う:
 
 | 指標 | ペルソナ1体あたり |
 |---|---|
 | トークン消費 | 約 40k〜60k tokens |
 | 実時間 | 2〜4 分 |
-| MCP ツール呼び出し | 30〜50 回 |
+| ブラウザ操作 | 30〜50 回 |
 
 スコープが広い（探索的なタスク・複数画面遷移）と倍に振れることがある。
 3 ペルソナ並列 ≈ 130k+ tokens / 4 分強 が一つの目安。
@@ -110,7 +127,11 @@ http://localhost:3000 を tanaka-60s と gal-20s でテストして
   `node "${CLAUDE_PLUGIN_ROOT}/skills/persona-tester/scripts/behavior-rules.mjs" render <persona.yaml>`
   で自然文制約のリストに展開しておく。
   legacy の配列型はそのまま使う。
-- target URL に Playwright で先にアクセスし、到達可能か確認
+- ブラウザが使えるか確かめる。`<cli> -s=persona-feedback-check open <target> --browser=chromium`
+  を実行し、到達できたら `<cli> -s=persona-feedback-check close` で閉じる
+  - `is not installed` を含むエラーなら、ブラウザが未インストール。エラーに書かれた
+    `install-browser` コマンドをユーザーに案内し、承認を得てから実行する
+  - `### Error` で到達できなければ target の URL をユーザーに確認する
 - ペルソナ数が `max_parallel` を超える場合、コスト警告を出してユーザーに確認
 
 ### 2. 起動フェーズ
@@ -122,6 +143,20 @@ http://localhost:3000 を tanaka-60s と gal-20s でテストして
 `20260511-100000`）。これは全ペルソナで共有し、`.persona-feedback/<timestamp>/...` の
 中間物ディレクトリと `reports/<timestamp>-report.{md,json}` の最終レポート
 ファイル名を一致させる。
+
+runner を起動する前に、ペルソナごとにブラウザセッションを開く:
+
+```
+PLAYWRIGHT_MCP_OUTPUT_DIR=.persona-feedback/<timestamp>/cli/<persona_id> \
+  <cli> -s=<timestamp>-<persona_id> open <target> --browser=chromium
+<cli> -s=<timestamp>-<persona_id> resize <width> <height>
+```
+
+- `PLAYWRIGHT_MCP_OUTPUT_DIR` は `open` のときに一度渡せば、そのセッションが書く
+  スナップショットファイルの置き場所になる。渡さないと cwd に `.playwright-cli/` ができる
+- ビューポートは `context.device` に合わせる: mobile 375x812 / tablet 768x1024 /
+  desktop 1280x800
+- `open` に失敗したペルソナは runner を起動せず、失敗ペルソナとして扱う
 
 Task 呼び出しのプロンプトには以下をインラインで埋め込む:
 
@@ -144,10 +179,15 @@ target: <URL>
 focus: <focus list>
 severity_threshold: <threshold>
 
-# スクリーンショット保存先（MCP の --output-dir からの相対パス）
-screenshot_dir: <timestamp>/screenshots/
+# ブラウザ（target を開いた状態で用意済み）
+cli: npx -y @playwright/cli@0.1.21
+session: <timestamp>-<persona_id>
+操作は `<cli> -s=<session> <command>` の形だけで行うこと。open / close / resize はしない。
+
+# スクリーンショット保存先（cwd 基準のパス）
+screenshot_dir: .persona-feedback/<timestamp>/screenshots/
 ファイル名は <persona_id>-<連番>-<短い説明>.png 形式で
-browser_take_screenshot の filename に「screenshot_dir + ファイル名」を渡してください。
+`screenshot --filename=<screenshot_dir + ファイル名>` を実行してください。
 
 # 出力契約
 findings の screenshot フィールドには上記の相対パスをそのまま記録すること。
@@ -169,16 +209,14 @@ runner が DSL を独自解釈し直す誘惑を残さないため、**YAML 内�
 持たせない設計（責務は親エージェント側に閉じる）。
 
 `parallel: true` の場合、**同一メッセージ内で複数の Task 呼び出しを並列に発行する**。
-`.mcp.json` の `--isolated` フラグにより、ペルソナごとに別ブラウザコンテキスト
-（別 Cookie/別 localStorage）が割り当てられるため、入力が他人に書き換わる
-ような干渉は発生しない。
+ペルソナごとに別セッション（別プロセス・別ブラウザ）を割り当てているので、
+入力が他人に書き換わるような干渉は発生しない。
 
 ### 3. 実行フェーズ（サブエージェント側）
 
 各サブエージェントは `agents/persona-runner.md` の指示に従い:
 
-- `browser_resize` でデバイスに応じたビューポート設定
-- `browser_navigate` で target にアクセス
+- 渡されたセッション（target を開いた状態）を `snapshot` で把握
 - ペルソナとして「自然に」タスクを試みる
 - **操作のたびに `action_log` にタイムスタンプ付きエントリを追加**（行動メトリクス
   計算のため必須。これがないと「言葉と行動の食い違い」検出が無効化される）
@@ -218,8 +256,17 @@ stdin から渡したい場合は `--raw-file -` を指定。
 非ゼロ終了したペルソナは集約レポートの「Failed Personas」セクションに
 理由付きで記載すること。
 
-persona-runner 側には **Write 権限を渡さない**。サブエージェントが意図せずホスト側
-ファイルを書き換えるリスクを抑え、責務を「JSON を返すだけ」に閉じる。
+persona-runner 側には **Write / Edit を渡さない**。ブラウザ操作のために Bash は渡すが、
+実行してよいのは `<cli> -s=<session> <command>` の形だけと指示している。
+ユーザーには `Bash(npx -y @playwright/cli@0.1.21:*)` を許可リストに入れる運用を案内し、
+サブエージェントは確認プロンプトを承認できないので、それ以外の Bash は拒否される。
+責務は「JSON を返すだけ」に閉じる。
+
+全ペルソナの戻り値を回収したら、runner の成否にかかわらず全セッションを閉じる:
+
+```
+<cli> -s=<timestamp>-<persona_id> close
+```
 
 ### 5. 集約フェーズ
 
@@ -284,7 +331,7 @@ baseline を指定したいときは `--baseline <path>` を使う。任意の2 
 ## エラーハンドリング (D-08: partial success)
 
 - 1ペルソナのセッション失敗で全体は止めない
-- 失敗ペルソナの理由（タイムアウト / MCP接続失敗 / スキーマ検証失敗 等）を
+- 失敗ペルソナの理由（タイムアウト / ブラウザセッション起動失敗 / スキーマ検証失敗 等）を
   レポートの `## Failed Personas` セクションに含める
 - 全ペルソナが失敗した場合のみ全体失敗とする
 
