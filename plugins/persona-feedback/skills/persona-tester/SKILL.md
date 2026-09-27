@@ -150,12 +150,15 @@ runner を起動する前に、ペルソナごとにブラウザセッション�
 PLAYWRIGHT_MCP_OUTPUT_DIR=.persona-feedback/<timestamp>/cli/<persona_id> \
   <cli> -s=<timestamp>-<persona_id> open <target> --browser=chromium
 <cli> -s=<timestamp>-<persona_id> resize <width> <height>
+<cli> -s=<timestamp>-<persona_id> tracing-start
 ```
 
 - `PLAYWRIGHT_MCP_OUTPUT_DIR` は `open` のときに一度渡せば、そのセッションが書く
   スナップショットファイルの置き場所になる。渡さないと cwd に `.playwright-cli/` ができる
 - ビューポートは `context.device` に合わせる: mobile 375x812 / tablet 768x1024 /
   desktop 1280x800
+- `tracing-start` は action_log に実測の時刻を入れるためのトレース記録。runner は現在時刻を
+  取れないので秒数を書かせず、回収時にトレースから書き込む（4. 回収フェーズ）
 - `open` に失敗したペルソナは runner を起動せず、失敗ペルソナとして扱う
 
 Task 呼び出しのプロンプトには以下をインラインで埋め込む:
@@ -218,8 +221,9 @@ runner が DSL を独自解釈し直す誘惑を残さないため、**YAML 内�
 
 - 渡されたセッション（target を開いた状態）を `snapshot` で把握
 - ペルソナとして「自然に」タスクを試みる
-- **操作のたびに `action_log` にタイムスタンプ付きエントリを追加**（行動メトリクス
-  計算のため必須。これがないと「言葉と行動の食い違い」検出が無効化される）
+- **操作のたびに `action_log` に実行順でエントリを追加**。迷った操作には `hesitated` を付け、
+  秒数は書かない（行動メトリクス計算のため必須。これがないと「言葉と行動の食い違い」検出が
+  無効化される）
 - スクリーンショット・違和感を記録
 - タスク完了 or 諦めポイントで終了
 - feedback.schema.json 準拠の JSON を返す
@@ -262,11 +266,23 @@ persona-runner 側には **Write / Edit を渡さない**。ブラウザ操作�
 サブエージェントは確認プロンプトを承認できないので、それ以外の Bash は拒否される。
 責務は「JSON を返すだけ」に閉じる。
 
-全ペルソナの戻り値を回収したら、runner の成否にかかわらず全セッションを閉じる:
+全ペルソナの戻り値を回収したら、runner の成否にかかわらず、ペルソナごとにトレースを止めて
+実測の時刻を raw に書き込み、セッションを閉じる:
 
 ```
+<cli> -s=<timestamp>-<persona_id> tracing-stop
+node "${CLAUDE_PLUGIN_ROOT}/skills/persona-tester/scripts/apply-trace-timing.mjs" \
+  --feedback .persona-feedback/<timestamp>/raw/<persona_id>.json \
+  --trace-dir .persona-feedback/<timestamp>/cli/<persona_id>/traces
 <cli> -s=<timestamp>-<persona_id> close
 ```
+
+- `apply-trace-timing.mjs` は save-raw に成功したペルソナだけ呼ぶ。トレースのコマンドと
+  runner の action_log を種類と順番で突き合わせ、秒数・`started_at`・`duration_seconds` を
+  実測で上書きし、どこまで対応が取れたかを `timing` に記録する
+- 対応が取れなかった操作は秒数なしで残る。トレースが見つからなければ `timing.source` が
+  `none` になり、時間の指標だけが空になる（回数の指標と赤フラグは出る）
+- 実測の秒数はコマンド間の実時間で、大半はモデルの思考時間。レポートでは参考値として出す
 
 ### 5. 集約フェーズ
 
@@ -281,8 +297,9 @@ persona-runner 側には **Write / Edit を渡さない**。ブラウザ操作�
 - **segment-specific**: 特定ペルソナだけが詰まった箇所
 - **controversial**: ペルソナ間で評価が割れた要素
 - **行動メトリクス (behavior_metrics)**: 各 persona の `action_log` から計算した
-  逡巡時間 / スクロール往復 / back・cancel 頻度 / 画面ごとの滞在時間。
-  **言葉と行動の食い違い**（好評価／完走なのに行動が迷っているケース）を赤フラグで出す。
+  迷った自己申告の回数 / スクロール往復 / back・cancel 頻度。赤フラグはこの回数で判定し、
+  **言葉と行動の食い違い**（好評価／完走なのに行動が迷っているケース）を出す。
+  トレースから測った逡巡時間と画面ごとの滞在時間は、モデルの思考時間を含む参考値として並べる。
   AI ペルソナの構造的限界（何でも言語化してしまい、本当の沈黙を再現できない）を
   Playwright メトリクスで部分的に補う仕組み。詳細は `scripts/behavior-metrics.mjs`。
 
@@ -327,6 +344,7 @@ baseline を指定したいときは `--baseline <path>` を使う。任意の2 
 ### 中間物（隠し・捨てる前提）— `.persona-feedback/`
 
 - 生フィードバック: `.persona-feedback/<timestamp>/raw/<persona_id>.json`
+- CLI のスナップショットとトレース: `.persona-feedback/<timestamp>/cli/<persona_id>/`
 - スクリーンショット: `.persona-feedback/<timestamp>/screenshots/<persona_id>-*.png`
 
 プラグインは利用側リポジトリの `.gitignore` を変更しない。`.persona-feedback/` が

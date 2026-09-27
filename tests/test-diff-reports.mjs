@@ -193,16 +193,16 @@ test('warnings は renderDiffMarkdown でレポート冒頭に出る', () => {
 test('behavior_metrics の差分を拾う', () => {
   const a = makeReport({
     feedbacks: [{ persona_id: 't', outcome: 'completed', findings: [], score: { overall: 7 } }],
-    metrics: [{ persona_id: 't', metrics: { hesitation_seconds_mean: 3, back_or_cancel_count: 1 } }],
+    metrics: [{ persona_id: 't', metrics: { hesitated_count: 1, back_or_cancel_count: 1 } }],
   });
   const b = makeReport({
     feedbacks: [{ persona_id: 't', outcome: 'completed', findings: [], score: { overall: 7 } }],
-    metrics: [{ persona_id: 't', metrics: { hesitation_seconds_mean: 9, back_or_cancel_count: 5 } }],
+    metrics: [{ persona_id: 't', metrics: { hesitated_count: 4, back_or_cancel_count: 5 } }],
   });
   const d = diffReports(a, b);
   const m = d.metric_deltas.find(x => x.persona_id === 't');
-  assert.equal(m.hesitation_from, 3);
-  assert.equal(m.hesitation_to, 9);
+  assert.equal(m.hesitated_from, 1);
+  assert.equal(m.hesitated_to, 4);
   assert.equal(m.back_or_cancel_from, 1);
   assert.equal(m.back_or_cancel_to, 5);
 });

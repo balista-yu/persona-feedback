@@ -65,7 +65,7 @@ Markdown 形式:
 - `🔁 変更サマリ (UX Regression)` を見出しに
 - ペルソナ別: `score (前 → 今)`, `Δ`, `outcome (前 → 今)` の表
 - findings: 追加 / 消失 / 継続件数。追加 / 消失したものは個別にリストで列挙
-- 行動メトリクス変化: hesitation_mean / back_or_cancel の前後比較表
+- 行動メトリクス変化: 迷った自己申告の回数 / back_or_cancel の前後比較表
 
 JSON 形式は `diff-reports.mjs` の `diffReports()` 戻り値をそのまま出す。
 
@@ -83,7 +83,8 @@ baseline として自動採用し、変更サマリセクションを今回の�
 - **outcome 変化**: completed/abandoned/blocked/error の遷移を ⚠️ フラグ付きで強調
 - **findings の追加 / 消失**: `category + 正規化 location` をキーにマッチ。
   category だけ一致しても location が違えば別 finding として扱う（誤マージ防止）
-- **behavior_metrics 変化**: hesitation_mean / back_or_cancel の前後値
+- **behavior_metrics 変化**: 迷った自己申告の回数 / back_or_cancel の前後値
+  （実測の逡巡時間はモデルの思考時間が大半で回ごとにぶれるので比較しない）
 
 ## 制約事項
 

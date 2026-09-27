@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 実運用フィードバック (issue #5) 反映 + 0.1.0 marketplace 版に残っていた
 MCP ツール名バグの修正。リリース版に切るタイミングで [0.1.x] セクションに移行する。
 
+### Fixed (issue #27: action_log の秒数が推測値になっている)
+- **秒数を CLI のトレースから実測する**: runner は現在時刻を取る手段が無く、`at_seconds` /
+  `started_at` / `duration_seconds` を見積もりで書いていた。親エージェントが `open` 後に
+  `tracing-start`、回収時に `tracing-stop` を呼び、新スクリプト `apply-trace-timing.mjs` が
+  トレース上のコマンドと action_log を種類と順番で突き合わせて実測値を書き込む。
+  対応が取れた数は raw の `timing` に残る。runner には秒数を書かせない。
+- **迷ったかどうかは自己申告として分ける**: action_log に `hesitated` を追加。
+  赤フラグの条件から「逡巡時間 5 秒以上」を外し、「迷った申告 3 回以上」に置き換えた。
+  実測の秒数は大半がモデルの思考時間なので、逡巡時間と滞在時間は参考値として表示するだけにする。
+- **差分レポートの行動メトリクス比較を迷った申告の回数に変更**: 実測の秒数は API の混み具合や
+  並列数で回ごとにぶれるため、前回との比較には使わない。
+
 ### Fixed (issue #23: 集約レポートで指摘が抜ける・まとまらない)
 - **finding に `page` / `element` を追加**: 自由文の `location` は runner ごとに表現が揺れ、
   同じ問題でも all-agreement にまとまらなかった。`page`（画面の URL）と `element`

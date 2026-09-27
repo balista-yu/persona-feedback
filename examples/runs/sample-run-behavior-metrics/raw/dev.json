@@ -11,6 +11,7 @@
     "overall": 8.5,
     "would_recommend": true
   },
+  "timing": { "source": "trace", "matched": 8, "cli_actions": 8 },
   "action_log": [
     { "at_seconds": 0,  "action": "navigate", "location": "/signup" },
     { "at_seconds": 1,  "action": "snapshot", "location": "/signup" },
